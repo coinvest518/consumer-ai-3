@@ -28,10 +28,18 @@ export default function PricingSection() {
     "Web, mobile and email access",
   ];
 
-  const handlePayment = () => {
+  // If you want to use your backend to create a Stripe session, use API_BASE_URL here.
+  // Otherwise, keep the direct Stripe link.
+  const handlePayment = async () => {
     try {
       setIsLoading(true);
-      // Redirect to the fixed Stripe payment link
+      // Example: Use API_BASE_URL for a backend call (demonstration only)
+      // This will not actually create a session unless your backend supports it
+      if (user) {
+        // Example API usage
+        await fetch(`${API_BASE_URL}/user/upgrade`, { method: 'POST', credentials: 'include' });
+      }
+      // For now, keep the direct Stripe payment link:
       window.location.href = 'https://buy.stripe.com/9AQeYP2cUcq0eA0bIU';
     } catch (error) {
       console.error('Error:', error);
@@ -108,9 +116,9 @@ export default function PricingSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div className="p-6 relative">
-              <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-0 transform">
-                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+            <div className="p-6 pt-10 relative">
+              <div className="absolute left-1/2 -top-4 -translate-x-1/2 z-10">
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-semibold bg-primary-100 text-primary-800 shadow-md border border-primary-200">
                   Popular
                 </span>
               </div>
@@ -125,9 +133,9 @@ export default function PricingSection() {
               <Button
                 className="mt-8 w-full"
                 onClick={handlePayment}
-                disabled={isLoading}
+                disabled={isLoading || !user}
               >
-                {isLoading ? 'Processing...' : 'Upgrade to Pro'}
+                {isLoading ? 'Processing...' : user ? 'Upgrade to Pro' : 'Login to Upgrade'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">

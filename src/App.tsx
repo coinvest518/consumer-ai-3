@@ -34,6 +34,7 @@ function App() {
               <Route path="/dashboard/classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/thank-you" element={<ThankYou />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -44,4 +45,5 @@ function App() {
   );
 }
 
+import Pricing from "./pages/Pricing";
 export default App;

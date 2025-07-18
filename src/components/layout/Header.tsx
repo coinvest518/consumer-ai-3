@@ -27,12 +27,7 @@ export default function Header() {
           >
             Features
           </button>
-          <button 
-            onClick={() => scrollToSection('pricing')} 
-            className="text-gray-600 hover:text-primary"
-          >
-            Pricing
-          </button>
+          <Link to="/pricing" className="text-gray-600 hover:text-primary">Pricing</Link>
         </nav>
 
         <div className="flex items-center gap-4">
