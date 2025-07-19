@@ -19,6 +19,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: Error }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: Error; needsVerification?: boolean }>;
   signInWithGoogle: () => Promise<{ success: boolean; error?: Error }>;
+  bypassAuth?: () => void; // DEV ONLY: Set a fake user for local testing
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,12 +32,29 @@ const mapUser = (supabaseUser: SupabaseUser): User => ({
   created_at: supabaseUser.created_at
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  // DEV ONLY: Bypass auth by setting a fake user
+  const navigate = useNavigate();
+  const bypassAuth = () => {
+    if (import.meta.env.DEV) {
+      setUser({
+        id: 'dev-user',
+        email: 'dev@local.test',
+        isPro: true,
+        created_at: new Date().toISOString(),
+      });
+      // Optionally, navigate to dashboard
+      navigate('/dashboard');
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [session, setSession] = useState<any>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -184,7 +202,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       signIn,
       signUp,
-      signInWithGoogle
+      signInWithGoogle,
+      bypassAuth: import.meta.env.DEV ? bypassAuth : undefined,
     }}>
       {children}
     </AuthContext.Provider>

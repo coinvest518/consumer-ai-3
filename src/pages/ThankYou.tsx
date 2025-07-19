@@ -17,16 +17,31 @@ const ThankYou = () => {
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
-    
     if (!sessionId) {
       setStatus('error');
       setErrorMessage('No session ID found');
       return;
     }
-
-    // api.verifyPayment is not implemented in api-client. You may want to implement this or handle payment verification another way.
-    setStatus('error');
-    setErrorMessage('Payment verification is not implemented.');
+    if (!user || !user.id) {
+      setStatus('error');
+      setErrorMessage('You must be logged in to verify your payment.');
+      return;
+    }
+    setStatus('loading');
+    setErrorMessage('');
+    api.verifyPayment(sessionId, user.id)
+      .then((res: PaymentVerificationResponse) => {
+        if (res && res.paid && res.processed) {
+          setStatus('success');
+        } else {
+          setStatus('error');
+          setErrorMessage('Payment could not be verified. Please contact support.');
+        }
+      })
+      .catch((err: any) => {
+        setStatus('error');
+        setErrorMessage(err?.message || 'Payment verification failed.');
+      });
   }, [searchParams, user, navigate]);
 
   if (status === 'loading') {

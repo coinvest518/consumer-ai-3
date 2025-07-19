@@ -1,11 +1,9 @@
-/**
- * Simple API client for ConsumerAI
- */
 
 // The base URL for the API (should NOT end with /api)
 const API_URL = import.meta.env.VITE_API_URL || 'https://consumer-ai-render.onrender.com';
-
-
+/**
+ * Simple API client for ConsumerAI
+ */
 
 // Simple fetch wrapper with error handling, now requires userId for authenticated endpoints
 async function fetchApi(endpoint: string, options: RequestInit = {}, userId?: string) {
@@ -45,6 +43,24 @@ async function fetchApi(endpoint: string, options: RequestInit = {}, userId?: st
 
 // API client with simple methods
 export const api = {
+  // Buy a prompt and deduct credits
+  buyPrompt: (promptId: string, userId: string) => {
+    if (!userId) throw new Error('User ID is required for buying a prompt');
+    if (!promptId) throw new Error('Prompt ID is required');
+    return fetchApi('prompts/buy', {
+      method: 'POST',
+      body: JSON.stringify({ promptId })
+    }, userId);
+  },
+  // Use a template and deduct credits
+  useTemplate: (templateId: string, userId: string) => {
+    if (!userId) throw new Error('User ID is required for using a template');
+    if (!templateId) throw new Error('Template ID is required');
+    return fetchApi('templates/use', {
+      method: 'POST',
+      body: JSON.stringify({ templateId })
+    }, userId);
+  },
   // Chat
   sendMessage: (message: string, sessionId: string, userId: string) => {
     if (!userId) {
@@ -99,6 +115,16 @@ export const api = {
     return fetchApi('storage/upgrade', {
       method: 'POST',
       body: JSON.stringify({ plan })
+    }, userId);
+  },
+
+  // Payment verification
+  verifyPayment: (sessionId: string, userId: string) => {
+    if (!userId) throw new Error('User ID is required for payment verification');
+    if (!sessionId) throw new Error('Session ID is required for payment verification');
+    return fetchApi('payments/verify', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId })
     }, userId);
   }
 };

@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { FormattedMessage } from "./FormattedMessage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, User, Clock } from "lucide-react";
+import { Bot, User, Clock, Sparkles } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import AgentIndicator from "./AgentIndicator";
 
@@ -11,7 +11,6 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
-  
   // Safety check for message structure
   if (!message || !message.content) {
     console.warn('ChatMessage received invalid message (missing content):', message);
@@ -20,9 +19,18 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   // Debug: log every message received by ChatMessage
   console.log('[ChatMessage] rendering message:', message);
 
-  const time = new Date(message.created_at).toLocaleTimeString([], { 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  // Detect if this message is a tool/integration suggestion (not an AI agent action)
+  // We'll use a simple convention: if the message contains a special marker, e.g. [Integration]
+  const isIntegration =
+    typeof message.content === 'string' &&
+    (
+      message.content.includes('This is an integration, not an AI agent') ||
+      message.content.includes('[Integration]')
+    );
+
+  const time = new Date(message.created_at).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
   });
 
   return (
@@ -49,18 +57,23 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         {/* Message Bubble */}
         <div className={cn(
           "relative px-4 py-3 rounded-2xl shadow-sm border",
-          isUser 
-            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-auto rounded-br-sm" 
+          isUser
+            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-auto rounded-br-sm"
             : "bg-white text-gray-800 rounded-bl-sm"
         )}>
           {!isUser && <AgentIndicator content={message.content} />}
+          {isIntegration && (
+            <div className="mb-1 flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded-full w-fit">
+              <Sparkles className="h-3 w-3" />
+              Integration Tool
+            </div>
+          )}
           <FormattedMessage content={message.content} isAI={!isUser} />
-          
           {/* Message tail */}
           <div className={cn(
             "absolute bottom-0 w-3 h-3",
-            isUser 
-              ? "right-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-bl-full" 
+            isUser
+              ? "right-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-bl-full"
               : "left-0 bg-white border-l border-b rounded-br-full"
           )}></div>
         </div>

@@ -291,45 +291,49 @@ export function useChat() {
       // Simulate agent actions with timeouts
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 1 } : null);
-        
-        // Add a simulated database search event
+        // Example: If the agent is suggesting a tool/integration, clarify in the event content
         setAgentState(prev => ({
           ...prev,
           events: [...prev.events, {
             type: 'tool_start',
             name: 'knowledge_base',
-            content: 'Searching for information about consumer rights...',
+            content: 'Searching for information about consumer rights... (AI Agent Action)',
             timestamp: Date.now()
           }]
         }));
       }, 800);
-      
+
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 2 } : null);
-        
-        // Add a simulated analysis event
         setAgentState(prev => ({
           ...prev,
           events: [...prev.events, {
             type: 'tool_end',
             name: 'knowledge_base',
-            content: 'Found relevant information about consumer protection laws',
+            content: 'Found relevant information about consumer protection laws (AI Agent Action)',
             timestamp: Date.now()
           }]
         }));
       }, 2000);
-      
+
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 3 } : null);
-        
-        // Add a simulated thinking event
+        // Example: If the agent is suggesting a tool/integration, clarify in the event content
         setAgentState(prev => ({
           ...prev,
           events: [...prev.events, {
             type: 'thinking',
-            content: 'Formulating response based on consumer rights information...',
+            content: 'Formulating response based on consumer rights information... (AI Agent Action)',
             timestamp: Date.now()
-          }]
+          },
+          // Example: Suggesting a tool/integration
+          {
+            type: 'tool_start',
+            name: 'mail_tracking',
+            content: 'To track your certified mail, please use the Mail Tracking tool below. This is an integration, not an AI agent.',
+            timestamp: Date.now()
+          }
+          ]
         }));
       }, 3000);
       

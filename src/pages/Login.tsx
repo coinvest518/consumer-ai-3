@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 const Login = () => {
-  const { signIn, signInWithGoogle, loading: authLoading } = useAuth();
+  const { signIn, signInWithGoogle, loading: authLoading, bypassAuth } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -93,7 +93,16 @@ const Login = () => {
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
             <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-            
+            {/* DEV ONLY: Bypass Auth Button */}
+            {import.meta.env.DEV && bypassAuth && (
+              <Button
+                type="button"
+                className="w-full mb-4 bg-green-100 text-green-800 hover:bg-green-200"
+                onClick={bypassAuth}
+              >
+                Bypass Auth (DEV ONLY)
+              </Button>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">

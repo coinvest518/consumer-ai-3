@@ -151,42 +151,18 @@ export const defaultTools: Tool[] = [
     id: "search",
     name: "Search Agent",
     icon: Search,
-    description: "Search for consumer law information"
-  },
-  {
-    id: "calendar",
-    name: "Calendar Agent",
-    icon: Calendar,
-    description: "Set reminders for important dates"
+    description: "AI-powered search for consumer law information"
   },
   {
     id: "report",
     name: "Report Analysis",
     icon: FileText,
-    description: "Analyze credit reports for errors"
+    description: "AI analyzes credit reports for errors"
   },
   {
     id: "letter",
     name: "Letter Generator",
     icon: FileText,
-    description: "Create dispute letters"
-  },
-  {
-    id: "legal",
-    name: "Legal Database",
-    icon: Scale,
-    description: "Access legal information"
-  },
-  {
-    id: "email",
-    name: "Email Notifications",
-    icon: Mail,
-    description: "Send email notifications"
-  },
-  {
-    id: "tracking",
-    name: "Mail Tracking",
-    icon: Package,
-    description: "Track certified mail"
+    description: "AI generates dispute letters"
   }
 ];

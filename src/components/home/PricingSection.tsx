@@ -28,6 +28,14 @@ export default function PricingSection() {
     "Web, mobile and email access",
   ];
 
+  const premiumPlanFeatures = [
+    "100 credits",
+    "All Pro features",
+    "Full access to all AI agents",
+    "Priority support",
+    "Best value for power users",
+  ];
+
   // If you want to use your backend to create a Stripe session, use API_BASE_URL here.
   // Otherwise, keep the direct Stripe link.
   const handlePayment = async () => {
@@ -71,7 +79,7 @@ export default function PricingSection() {
           </p>
         </motion.div>
 
-        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-2">
+        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-3">
           {/* Free Plan */}
           <motion.div 
             className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 bg-white"
@@ -144,6 +152,48 @@ export default function PricingSection() {
                 {proPlanFeatures.map((feature, index) => (
                   <li key={index} className="flex space-x-3">
                     <CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" />
+                    <span className="text-sm text-gray-500">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+
+          {/* Premium Plan */}
+          <motion.div 
+            className="border-2 border-yellow-400 rounded-lg shadow-lg divide-y divide-gray-200 bg-white scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <div className="p-6 pt-10 relative">
+              <div className="absolute left-1/2 -top-4 -translate-x-1/2 z-10">
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-semibold bg-yellow-200 text-yellow-900 shadow-md border border-yellow-300">
+                  Best Value
+                </span>
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Premium</h3>
+              <p className="mt-4 text-sm text-gray-500">
+                100 credits per month, all features, and full AI agent access.
+              </p>
+              <p className="mt-8">
+                <span className="text-4xl font-extrabold text-gray-900">$50</span>
+                <span className="text-base font-medium text-gray-500">/month</span>
+              </p>
+              <Button
+                className="mt-8 w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 border-yellow-500"
+                onClick={() => window.location.href = 'https://buy.stripe.com/6oU28rgaCbn40uD7nGew80k'}
+              >
+                Get 100 Credits Monthly
+              </Button>
+            </div>
+            <div className="pt-6 pb-8 px-6">
+              <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
+              <ul className="mt-6 space-y-4">
+                {premiumPlanFeatures.map((feature, index) => (
+                  <li key={index} className="flex space-x-3">
+                    <CheckIcon className="flex-shrink-0 h-5 w-5 text-yellow-500" />
                     <span className="text-sm text-gray-500">{feature}</span>
                   </li>
                 ))}

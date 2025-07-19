@@ -28,6 +28,7 @@ export default function Header() {
             Features
           </button>
           <Link to="/pricing" className="text-gray-600 hover:text-primary">Pricing</Link>
+          <Link to="/credit-builder" className="text-gray-600 hover:text-primary">Credit Builder</Link>
         </nav>
 
         <div className="flex items-center gap-4">
