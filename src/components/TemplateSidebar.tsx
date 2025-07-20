@@ -809,30 +809,30 @@ export default function TemplateSidebar({
 
     try {
       setIsProcessing(true);
-      
-      // api.useTemplate is not implemented in api-client. You may want to implement this or handle template usage another way.
-      
+      // Call backend to track usage and deduct credits
+      await api.useTemplate(template.id, user.id);
+
       // Call the template selection handler
       onTemplateSelect(template);
-      
-      // Update credits display
+
+      // Update credits display (parent should refetch credits)
       onCreditUpdate();
-      
+
       toast({
         title: "Template Applied",
         description: `"${template.name}" has been applied. ${template.creditCost} credits used.`,
       });
-      
+
       // Close sidebar on mobile
       if (window.innerWidth < 1024) {
         onToggle();
       }
-      
+
     } catch (error) {
       console.error('Error using template:', error);
       toast({
         title: "Error",
-        description: "Failed to apply template. Please try again.",
+        description: (error as any)?.message || "Failed to apply template. Please try again.",
         variant: "destructive"
       });
     } finally {
