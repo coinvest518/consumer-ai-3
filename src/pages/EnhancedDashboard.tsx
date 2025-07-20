@@ -148,11 +148,7 @@ export default function EnhancedDashboard() {
     chatsUsed: 0,
     remaining: 5
   });
-  const [connectionStatus, setConnectionStatus] = useState({
-    checking: false,
-    chatConnected: false,
-    message: ''
-  });
+  // Removed connectionStatus state
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
   // Agent click
@@ -191,24 +187,7 @@ export default function EnhancedDashboard() {
     }
   };
 
-  // Chat connection test
-  const testChatConnection = async () => {
-    if (!user) return;
-    setConnectionStatus(prev => ({ ...prev, checking: true, message: '' }));
-    try {
-      setConnectionStatus({
-        checking: false,
-        chatConnected: true,
-        message: 'Chat API is connected! (testChat not implemented)'
-      });
-    } catch (err) {
-      setConnectionStatus({
-        checking: false,
-        chatConnected: false,
-        message: (err as Error).message || 'Failed to connect to Chat API'
-      });
-    }
-  };
+  // Removed testChatConnection function
 
   // Loading and error states
   if (authLoading || loading) {
@@ -264,7 +243,7 @@ export default function EnhancedDashboard() {
             </div>
 
             {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <Card>
                 <CardHeader>
                   <CardTitle>Usage Stats</CardTitle>
@@ -309,43 +288,6 @@ export default function EnhancedDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Joined:</span>
                       <span className="font-medium">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>API Connection</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Chat API:</span>
-                      <span className="font-medium flex items-center gap-1">
-                        {connectionStatus.checking ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                        ) : connectionStatus.chatConnected ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <AlertCircle className="h-4 w-4 text-amber-500" />
-                        )}
-                        {connectionStatus.checking ? 'Checking...' : connectionStatus.chatConnected ? 'Connected' : 'Not Tested'}
-                      </span>
-                    </div>
-                    {connectionStatus.message && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-                        {connectionStatus.message}
-                      </div>
-                    )}
-                    <div className="mt-4">
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={testChatConnection}
-                        disabled={connectionStatus.checking}
-                      >
-                        {connectionStatus.checking ? 'Testing...' : 'Test Chat Connection'}
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
