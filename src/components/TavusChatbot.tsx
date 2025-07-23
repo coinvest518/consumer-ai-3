@@ -48,7 +48,7 @@ export default function TavusChatbot({ className = '' }: TavusChatbotProps) {
       // Use correct API server for local dev
       const tavusApiUrl = window.location.hostname === 'localhost'
         ? 'http://localhost:3001/tavus/conversations'
-        : '/tavus/conversations';
+        : '/api/tavus/conversations';
       const response = await fetch(tavusApiUrl, {
         method: 'POST',
         headers: {

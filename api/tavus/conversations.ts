@@ -6,21 +6,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Optionally, you can extract more fields from req.body as needed
-  const { conversation_name, conversational_context, properties } = req.body;
+  const {
+    conversation_name,
+    conversational_context,
+    properties,
+    persona_id,
+    replica_id,
+  } = req.body;
 
   const apiKey = process.env.VITE_TAVUS_API_KEY;
-  const apiUrl = process.env.VITE_TAVUS_API_URL;
-  const personaId = process.env.VITE_TAVUS_PERSONA_ID;
+  const apiUrl = process.env.VITE_TAVUS_API_URL || 'https://tavusapi.com/v2';
+  const personaId = persona_id || process.env.VITE_TAVUS_PERSONA_ID;
+  const replicaId = replica_id || process.env.VITE_TAVUS_REPLICA_ID;
 
   try {
     const response = await fetch(`${apiUrl}/conversations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'x-api-key': apiKey!,
       },
       body: JSON.stringify({
+        replica_id: replicaId,
         persona_id: personaId,
         conversation_name,
         conversational_context,
@@ -28,13 +35,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      return res.status(response.status).json({ error });
-    }
-
     const data = await response.json();
-    return res.status(200).json(data);
+    return res.status(response.status).json(data);
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Internal server error' });
   }
