@@ -45,12 +45,17 @@ export default function TavusChatbot({ className = '' }: TavusChatbotProps) {
     setError(null);
     
     try {
-      const response = await fetch('/tavus/conversations', {
+      // Use correct API server for local dev
+      const tavusApiUrl = window.location.hostname === 'localhost'
+        ? 'http://localhost:3001/tavus/conversations'
+        : '/tavus/conversations';
+      const response = await fetch(tavusApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          replica_id: import.meta.env.VITE_TAVUS_REPLICA_ID,
           persona_id: import.meta.env.VITE_TAVUS_PERSONA_ID,
           conversation_name: 'ConsumerAI Customer Support',
           conversational_context: `You are a helpful customer service representative for ConsumerAI, a legal AI assistant platform that helps consumers with credit disputes, debt collection issues, and consumer protection law. 

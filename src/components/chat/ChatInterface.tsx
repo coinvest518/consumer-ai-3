@@ -119,20 +119,22 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] max-w-6xl mx-auto">
+    <div className="flex flex-col md:flex-row h-[100dvh] md:h-[calc(100vh-12rem)] max-w-full md:max-w-6xl mx-auto bg-white md:bg-transparent">
       {/* Tool Panel */}
-      <ToolPanel
-        expanded={toolPanelExpanded}
-        onToggle={() => setToolPanelExpanded(!toolPanelExpanded)}
-        tools={defaultTools}
-        onSelectTool={handleToolSelect}
-        selectedTool={selectedTool}
-      />
-      
+      <div className="md:block w-full md:w-auto order-2 md:order-1">
+        <ToolPanel
+          expanded={toolPanelExpanded}
+          onToggle={() => setToolPanelExpanded(!toolPanelExpanded)}
+          tools={defaultTools}
+          onSelectTool={handleToolSelect}
+          selectedTool={selectedTool}
+          className="md:h-full md:min-h-0 min-h-[56px]"
+        />
+      </div>
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col order-1 md:order-2 min-h-0 bg-white">
         {/* Chat Header */}
-        <div className="flex items-center gap-3 p-4 border-b bg-white/80 backdrop-blur-sm rounded-t-xl">
+        <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4 border-b bg-white/80 backdrop-blur-sm rounded-t-xl sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <div className="relative">
               <Bot className="h-8 w-8 text-blue-600" />
@@ -179,8 +181,8 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         </div>
 
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
-          <div className="space-y-4 p-4">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white min-h-0 max-h-[40vh] md:max-h-none" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="space-y-3 p-2 md:p-4">
             {/* Error Display */}
             {error && (
               <div className="flex justify-center">
@@ -243,8 +245,8 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-white border-t">
-          <form onSubmit={handleSubmit} className="flex gap-3">
+        <div className="p-2 md:p-4 bg-white border-t sticky bottom-0 z-10">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <div className="flex-1 relative">
               <Input
                 value={inputValue}
@@ -252,12 +254,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 placeholder="Ask about consumer rights, credit reports, debt collection..."
                 disabled={isLoading}
                 className={cn(
-                  "pr-12 h-12 text-base rounded-xl border-2 transition-all duration-200",
+                  "pr-10 h-11 text-base rounded-xl border-2 transition-all duration-200",
                   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                   "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
               />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
                 <User className="h-5 w-5 text-gray-400" />
               </div>
             </div>
@@ -265,7 +267,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               type="submit" 
               disabled={isLoading || !inputValue.trim()}
               className={cn(
-                "h-12 px-6 rounded-xl font-medium transition-all duration-200",
+                "h-11 px-4 md:px-6 rounded-xl font-medium transition-all duration-200 w-full sm:w-auto",
                 "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 "shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -278,16 +280,13 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               )}
             </Button>
           </form>
-          
           {/* Quick Actions and Agent Selector */}
-          <div className="flex flex-wrap items-center gap-2 mt-3">
+          <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-3">
             <AgentSelector 
               onSelect={setSelectedAgent} 
               selectedAgent={selectedAgent} 
             />
-            
-            <div className="h-5 border-l border-gray-200 mx-1"></div>
-            
+            <div className="hidden sm:block h-5 border-l border-gray-200 mx-1"></div>
             <button 
               onClick={() => setInputValue("What are my rights with debt collectors?")}
               className="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100 transition-colors"

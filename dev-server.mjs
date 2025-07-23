@@ -44,6 +44,36 @@ console.log('🚀 ConsumerAI API Proxy initializing...');
 console.log('🔄 Forwarding all API requests to:', RENDER_API_URL);
 
 // Proxy all API requests to Render
+// Local Tavus API proxy route
+app.post('/tavus/conversations', async (req, res) => {
+  const { conversation_name, conversational_context, properties, persona_id, replica_id } = req.body;
+  const apiKey = process.env.VITE_TAVUS_API_KEY;
+  const apiUrl = process.env.VITE_TAVUS_API_URL;
+  const personaId = persona_id || process.env.VITE_TAVUS_PERSONA_ID;
+  const replicaId = replica_id || process.env.VITE_TAVUS_REPLICA_ID;
+
+  try {
+    const response = await fetch(`${apiUrl}/conversations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        replica_id: replicaId,
+        persona_id: personaId,
+        conversation_name,
+        conversational_context,
+        properties,
+      }),
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.use('/api', async (req, res) => {
   // Forward to /api/* on the backend, do not double /api
   const targetUrl = `${RENDER_API_URL}${req.url}`;

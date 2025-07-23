@@ -35,7 +35,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className={cn(
-      "flex w-full gap-3",
+      "flex w-full gap-2 sm:gap-3 px-1 sm:px-0",
       isUser ? "justify-end" : "justify-start"
     )}>
       {/* AI Avatar (left side) */}
@@ -51,12 +51,12 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
       {/* Message Content */}
       <div className={cn(
-        "max-w-[80%] space-y-1",
+        "max-w-[90vw] sm:max-w-[80%] space-y-1",
         isUser ? "items-end" : "items-start"
       )}>
         {/* Message Bubble */}
         <div className={cn(
-          "relative px-4 py-3 rounded-2xl shadow-sm border",
+          "relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm border text-sm sm:text-base",
           isUser
             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-auto rounded-br-sm"
             : "bg-white text-gray-800 rounded-bl-sm"
@@ -71,7 +71,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           <FormattedMessage content={message.content} isAI={!isUser} />
           {/* Message tail */}
           <div className={cn(
-            "absolute bottom-0 w-3 h-3",
+            "absolute bottom-0 w-2.5 h-2.5 sm:w-3 sm:h-3",
             isUser
               ? "right-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-bl-full"
               : "left-0 bg-white border-l border-b rounded-br-full"
@@ -80,7 +80,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
         {/* Timestamp */}
         <div className={cn(
-          "flex items-center gap-1 text-xs text-gray-500 px-2",
+          "flex items-center gap-1 text-[11px] sm:text-xs text-gray-500 px-1 sm:px-2",
           isUser ? "justify-end" : "justify-start"
         )}>
           <Clock className="h-3 w-3" />
@@ -91,7 +91,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       {/* User Avatar (right side) */}
       {isUser && (
         <div className="flex-shrink-0">
-          <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
+          <Avatar className="h-7 w-7 sm:h-8 sm:w-8 border-2 border-white shadow-sm">
             <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white">
               <User className="h-4 w-4" />
             </AvatarFallback>

@@ -13,9 +13,9 @@ export default function ThinkingAnimation({ progress }: ThinkingAnimationProps) 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-md p-4 w-full max-w-md mx-auto"
+      className="bg-white rounded-lg shadow-md p-3 sm:p-4 w-full max-w-xs sm:max-w-md mx-auto text-sm"
     >
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
         <motion.div
           animate={{ 
             scale: [1, 1.1, 1],
@@ -30,7 +30,7 @@ export default function ThinkingAnimation({ progress }: ThinkingAnimationProps) 
           <Brain className="h-6 w-6 text-blue-600" />
         </motion.div>
         <div>
-          <h4 className="font-medium text-gray-800">AI is thinking...</h4>
+          <h4 className="font-medium text-gray-800 text-sm sm:text-base">AI is thinking...</h4>
           <p className="text-xs text-gray-500">{progress.steps[progress.current]}</p>
         </div>
         <div className="ml-auto">
@@ -49,7 +49,7 @@ export default function ThinkingAnimation({ progress }: ThinkingAnimationProps) 
         />
       </div>
       
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-[11px] sm:text-xs text-gray-400">
         <span>Processing</span>
         <span>Analyzing</span>
         <span>Responding</span>
