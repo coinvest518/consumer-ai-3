@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "framework": "vite",
   "builds": [
     {
       "src": "package.json",
@@ -10,6 +11,7 @@
     }
   ],
   "routes": [
+    { "src": "/api/tavus/conversations", "dest": "/api/tavus/conversations" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
     { "src": "/(.*\\.(js|css|ico|png|jpg|svg))", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
