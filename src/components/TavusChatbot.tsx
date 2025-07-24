@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { api } from '@/lib/api-client';
 import { MessageCircle, X, Video, Phone, Loader2, Bot, ThumbsUp, ThumbsDown, Star, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +67,18 @@ For users who haven't signed up yet, focus on explaining platform benefits and g
           language: 'english'
         }
       };
-      const data = await api.createTavusConversation(payload);
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to create conversation`);
+      }
+      const data = await response.json();
       setConversation(data);
       toast({
         title: "Video Chat Ready! 🎥",
