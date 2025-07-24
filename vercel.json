@@ -12,9 +12,10 @@
   ],
   "routes": [
     
-    { "src": "/api/conversations/?", "dest": "/api/conversations" },
-    { "src": "/api/credit-builder/?", "dest": "/api/credit-builder" },
+    { "src": "/api/conversations/?", "dest": "/api/conversations.ts" },
+    { "src": "/api/credit-builder/?", "dest": "/api/credit-builder.ts" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
+    
     { "src": "/(.*\\.(js|css|ico|png|jpg|svg))", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
