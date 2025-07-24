@@ -12,7 +12,7 @@ A mobile-first legal AI assistant for consumer law questions with an animated la
 
 ## Tech Stack
 
-- React with TypeScript
+- React with Typescript
 - Framer Motion for animations
 - Tailwind CSS for styling
 - Express backend for API
