@@ -28,6 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const personaId = persona_id || process.env.VITE_TAVUS_PERSONA_ID;
   const replicaId = replica_id || process.env.VITE_TAVUS_REPLICA_ID;
 
+  console.log(`[Tavus API] Attempting to connect to: ${apiUrl}`);
   console.log('[TAVUS] Env:', { apiKey: !!apiKey, apiUrl, personaId, replicaId });
   console.log('[TAVUS] Request body:', req.body);
 

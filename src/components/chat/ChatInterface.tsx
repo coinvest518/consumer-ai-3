@@ -145,7 +145,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               <p className="text-xs text-gray-500">Online • Ready to help</p>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 md:gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -155,12 +155,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               {showAgentActivity ? (
                 <>
                   <Eye className="h-3.5 w-3.5" />
-                  Hide Activity
+                  <span className="hidden sm:inline">Hide Activity</span>
                 </>
               ) : (
                 <>
                   <EyeOff className="h-3.5 w-3.5" />
-                  Show Activity
+                  <span className="hidden sm:inline">Show Activity</span>
                 </>
               )}
             </Button>
@@ -171,9 +171,9 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               className="flex items-center gap-1 text-xs h-8"
             >
               <Upload className="h-3.5 w-3.5" />
-              Upload
+              <span className="hidden sm:inline">Upload</span>
             </Button>
-            <div className="flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1">
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span className="text-xs text-gray-600">AI-Powered</span>
             </div>
