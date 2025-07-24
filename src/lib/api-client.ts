@@ -126,5 +126,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ sessionId })
     }, userId);
+  },
+
+  // Tavus: Create a new conversation (calls backend API route)
+  createTavusConversation: (payload: {
+    replica_id: string;
+    persona_id: string;
+    conversation_name: string;
+    conversational_context: string;
+    properties?: Record<string, any>;
+  }) => {
+    // No userId required for Tavus conversation
+    return fetchApi('conversations', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
   }
 };

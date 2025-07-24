@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { api } from '@/lib/api-client';
 import { MessageCircle, X, Video, Phone, Loader2, Bot, ThumbsUp, ThumbsDown, Star, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -43,22 +44,12 @@ export default function TavusChatbot({ className = '' }: TavusChatbotProps) {
   const createConversation = async (retryCount = 0) => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      // Use correct API server for local dev
-      const tavusApiUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3001/api/conversations'
-        : '/api/conversations';
-      const response = await fetch(tavusApiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          replica_id: import.meta.env.VITE_TAVUS_REPLICA_ID,
-          persona_id: import.meta.env.VITE_TAVUS_PERSONA_ID,
-          conversation_name: 'ConsumerAI Customer Support',
-          conversational_context: `You are a helpful customer service representative for ConsumerAI, a legal AI assistant platform that helps consumers with credit disputes, debt collection issues, and consumer protection law. 
+      const payload = {
+        replica_id: import.meta.env.VITE_TAVUS_REPLICA_ID,
+        persona_id: import.meta.env.VITE_TAVUS_PERSONA_ID,
+        conversation_name: 'ConsumerAI Customer Support',
+        conversational_context: `You are a helpful customer service representative for ConsumerAI, a legal AI assistant platform that helps consumers with credit disputes, debt collection issues, and consumer protection law. 
           
 You should help users with:
 - Questions about the platform features and how it works
@@ -70,37 +61,26 @@ You should help users with:
 - Explaining credit report disputes and debt collection rights
 
 For users who haven't signed up yet, focus on explaining platform benefits and guiding them through the signup process. Be friendly, professional, and empathetic. If users have complex legal questions, explain how our AI chat feature and legal templates can help them once they sign up. Always maintain a supportive tone as we're helping people with potentially stressful financial and legal situations. Keep responses concise but helpful.`,
-          properties: {
-            enable_recording: false,
-            max_call_duration: 600,
-            enable_transcription: true,
-            language: 'english'
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to create conversation`);
-      }
-
-      const data = await response.json();
+        properties: {
+          enable_recording: false,
+          max_call_duration: 600,
+          enable_transcription: true,
+          language: 'english'
+        }
+      };
+      const data = await api.createTavusConversation(payload);
       setConversation(data);
-      
       toast({
         title: "Video Chat Ready! 🎥",
         description: "Connecting you with our AI customer support representative...",
       });
-      
     } catch (err) {
       console.error('Error creating conversation:', err);
-      
       if (retryCount < 2 && err instanceof Error && err.message.includes('Failed to create conversation')) {
         console.log(`Retrying conversation creation (attempt ${retryCount + 1})`);
         await new Promise(resolve => setTimeout(resolve, 1000));
         return createConversation(retryCount + 1);
       }
-      
       setError(err instanceof Error ? err.message : 'Failed to start video chat. Please try again.');
       toast({
         title: "Connection Error",
