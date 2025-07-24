@@ -2,6 +2,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // --- Add this block for debugging ---
+  console.log('[TAVUS_HANDLER] /api/conversations function invoked.', {
+    method: req.method,
+    headers: req.headers,
+    body: req.body,
+  });
+  // ------------------------------------
   console.log('[TAVUS] API invoked:', { method: req.method, url: req.url });
   if (req.method !== 'POST') {
     console.log('[TAVUS] Method not allowed:', req.method);
