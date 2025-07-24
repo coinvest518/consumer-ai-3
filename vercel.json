@@ -12,6 +12,9 @@
     }
   ],
   "routes": [
+    
+    { "src": "/api/conversations", "dest": "/api/conversations" },
+
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
     { "src": "/(.*\\.(js|css|ico|png|jpg|svg))", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/index.html" }

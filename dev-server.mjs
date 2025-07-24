@@ -44,8 +44,8 @@ console.log('🚀 ConsumerAI API Proxy initializing...');
 console.log('🔄 Forwarding all API requests to:', RENDER_API_URL);
 
 // Proxy all API requests to Render
-// Local Tavus API proxy route
-app.post('/tavus/conversations', async (req, res) => {
+// Local proxy for the Tavus /api/conversations endpoint
+app.post('/api/conversations', async (req, res) => {
   const { conversation_name, conversational_context, properties, persona_id, replica_id } = req.body;
   const apiKey = process.env.VITE_TAVUS_API_KEY;
   const apiUrl = process.env.VITE_TAVUS_API_URL;
