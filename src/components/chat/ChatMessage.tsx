@@ -14,6 +14,9 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const { muted } = useContext(AIVoiceMuteContext);
+  // Import useChat to get shouldSpeakAI
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { shouldSpeakAI } = require("@/hooks/useChat").useChat();
   const isUser = message.role === 'user';
   // Safety check for message structure
   if (!message || !message.content) {
@@ -49,7 +52,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       message.content &&
       !muted &&
       !isIntegration &&
-      message.id !== '0-ai'
+      message.id !== '0-ai' &&
+      shouldSpeakAI // Only speak if shouldSpeakAI is true
     ) {
       const utter = new window.SpeechSynthesisUtterance(message.content);
       utter.lang = 'en-US';
@@ -62,7 +66,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message.content, muted]);
+  }, [message.content, muted, shouldSpeakAI]);
 
   return (
     <div className={cn(

@@ -30,6 +30,8 @@ const initialMessage: ChatMessage = {
 export function useChat() {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
+  // Track if AI should speak its response
+  const [shouldSpeakAI, setShouldSpeakAI] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -94,10 +96,15 @@ export function useChat() {
     };
     setMessages(prev => [...prev, userMessage]);
 
+    // If sending via voice, set shouldSpeakAI to true. You must set this in your voice input handler.
+    // Example: setShouldSpeakAI(true) when user sends via voice.
+
     try {
       const response = await api.sendMessage(content, user.id, user.id);
       if (response && response.data) {
         setMessages(prev => [...prev, response.data]);
+        // After AI response, reset shouldSpeakAI to false
+        setShouldSpeakAI(false);
       } else {
         throw new Error(response.error?.message || 'Invalid response from server');
       }
@@ -144,5 +151,7 @@ export function useChat() {
     progress,
     setProgress,
     agentState,
+    shouldSpeakAI,
+    setShouldSpeakAI,
   };
 }

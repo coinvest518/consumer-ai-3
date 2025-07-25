@@ -67,6 +67,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
       setInputValue(transcript);
       setIsListening(false);
       clearTimeout(timeoutId);
+      // Set shouldSpeakAI true when sending via voice
+      chatHook.setShouldSpeakAI(true);
+      // Optionally auto-send after voice input
+      if (transcript.trim()) {
+        handleSubmit({ preventDefault: () => {} } as any);
+      }
     };
     recognition.onerror = (event) => {
       alert('Speech recognition error: ' + event.error);
