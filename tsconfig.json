@@ -19,7 +19,7 @@
       "@/*": ["./src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "react"],
   },
   "include": ["src", "shared", "api"],
   "references": [{ "path": "./tsconfig.node.json" }]

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Bot, User, Sparkles, Upload, X, Eye, EyeOff } from "lucide-react";
+import { Send, Loader2, Bot, User, Sparkles, Upload, X, Eye, EyeOff, Mic } from "lucide-react";
+import VoiceInput from './VoiceInput';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
@@ -30,6 +31,11 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isListening, setIsListening] = useState(false);
+
+  const handleTranscriptChange = (transcript: string) => {
+    setInputValue(transcript);
+  };
 
   // Always prefer props if provided, else fallback to hook
   const messages = props.messages !== undefined ? props.messages : chatHook.messages;
@@ -81,6 +87,10 @@ export default function ChatInterface(props: ChatInterfaceProps) {
     e.preventDefault();
     e.stopPropagation(); // Prevent event bubbling
     if (!inputValue.trim() || isLoading) return;
+
+    if (isListening) {
+      setIsListening(false);
+    }
 
     let message = inputValue.trim();
     
@@ -223,7 +233,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
             )}
             
             {/* Show thinking animation when loading */}
-            {isLoading && (
+            {(showProgress && isLoading) && (
               <div className="mt-4 flex justify-center">
                 {chatHook.progress ? (
                   <ThinkingAnimation progress={chatHook.progress} />
@@ -254,13 +264,42 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 placeholder="Ask about consumer rights, credit reports, debt collection..."
                 disabled={isLoading}
                 className={cn(
-                  "pr-10 h-11 text-base rounded-xl border-2 transition-all duration-200",
+                  "pr-20 h-11 text-base rounded-xl border-2 transition-all duration-200",
                   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                   "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (inputValue.trim() && !isLoading) {
+                      handleSubmit(e);
+                    }
+                  }
+                }}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="absolute right-12 top-1/2 -translate-y-1/2">
                 <User className="h-5 w-5 text-gray-400" />
+              </div>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                {/* VoiceInput with tooltip and badge */}
+                <div className="flex items-center gap-1">
+                  <div className="group relative">
+                    <VoiceInput 
+                      onTranscriptChange={handleTranscriptChange} 
+                      onListeningChange={setIsListening} 
+                      aria-label="Click to speak to the AI assistant"
+                    />
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-20 whitespace-nowrap">
+                      Click to speak to the AI assistant
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 rounded px-1.5 py-0.5 ml-1 hidden sm:inline">Talk instead</span>
+                </div>
+                {/* Listening indicator */}
+                {isListening && (
+                  <div className="absolute right-0 top-full mt-1 text-xs text-red-600 font-semibold animate-pulse bg-red-50 rounded px-2 py-0.5 shadow">Listening...</div>
+                )}
               </div>
             </div>
             <Button 

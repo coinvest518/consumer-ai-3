@@ -4,12 +4,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, User, Clock, Sparkles } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import AgentIndicator from "./AgentIndicator";
+import { useEffect, useContext, createContext } from "react";
 
+// Global mute context for AI voice
+export const AIVoiceMuteContext = createContext<{ muted: boolean; setMuted: (m: boolean) => void }>({ muted: false, setMuted: () => {} });
 interface ChatMessageProps {
   message: ChatMessageType;
 }
 
 export default function ChatMessage({ message }: ChatMessageProps) {
+  const { muted } = useContext(AIVoiceMuteContext);
   const isUser = message.role === 'user';
   // Safety check for message structure
   if (!message || !message.content) {
@@ -32,6 +36,33 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  // Text-to-speech for AI responses
+  // Prevent speech on initial page load
+  useEffect(() => {
+    // Only speak if this is a new AI message (not the first assistant greeting)
+    // We'll check if the message.id does NOT end with "0-ai" (the default greeting)
+    if (
+      !isUser &&
+      typeof window !== 'undefined' &&
+      'speechSynthesis' in window &&
+      message.content &&
+      !muted &&
+      !isIntegration &&
+      message.id !== '0-ai'
+    ) {
+      const utter = new window.SpeechSynthesisUtterance(message.content);
+      utter.lang = 'en-US';
+      window.speechSynthesis.speak(utter);
+    }
+    // Optionally, cancel on unmount
+    return () => {
+      if (!isUser && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message.content, muted]);
 
   return (
     <div className={cn(
