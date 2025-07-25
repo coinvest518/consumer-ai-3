@@ -36,7 +36,8 @@ export function useChat() {
   }, [user]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  // Use Supabase user ID as sessionId for chat history
+  const [currentChatId, setCurrentChatId] = useState<string | null>(user?.id ?? null);
   const [progress, setProgress] = useState<ChatProgress | null>(null);
   const [agentState, setAgentState] = useState<AgentState>({
     isActive: false,
@@ -133,171 +134,82 @@ export function useChat() {
 
   // On mount, load default chat if user is logged in and no chatId is set
   useEffect(() => {
-    if (!currentChatId && user?.id) {
+    // Always set currentChatId to user.id when user changes
+    if (user?.id) {
+      setCurrentChatId(user.id);
       setIsLoading(true);
       setProgress({
         steps: ['Connecting', 'Loading History', 'Preparing Chat'],
         current: 0
       });
-
-      // Create a session first if needed
-      (async () => {
-        let sessionId = currentChatId;
-        if (!sessionId) {
-          try {
-            const sessionResponse = await api.createSession({ userId: user.id, sessionName: 'New Chat' }, user.id);
-            if (sessionResponse && sessionResponse.data && sessionResponse.data.id) {
-              sessionId = sessionResponse.data.id;
-              setCurrentChatId(sessionId);
-            } else if (sessionResponse && sessionResponse.id) {
-              sessionId = sessionResponse.id;
-              setCurrentChatId(sessionId);
-            } else {
-              sessionId = user.id;
-              setCurrentChatId(sessionId);
-            }
-          } catch (err) {
-            sessionId = user.id;
-            setCurrentChatId(sessionId);
+      // Load chat history using user.id as sessionId
+      api.getChatHistory(user.id, user.id)
+        .then(historyResponse => {
+          setProgress(prev => prev ? { ...prev, current: 2 } : null);
+          if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
+            const transformed: ChatMessage[] = [];
+            historyResponse.data.forEach((entry: any) => {
+              if (entry.message) {
+                transformed.push({
+                  id: entry.id || entry._id || `${entry.created_at}-user`,
+                  content: entry.message,
+                  role: "user",
+                  created_at: entry.created_at,
+                });
+              }
+              if (entry.response) {
+                transformed.push({
+                  id: entry.id ? entry.id + "-ai" : `${entry.created_at}-ai`,
+                  content: entry.response,
+                  role: "assistant",
+                  created_at: entry.created_at,
+                });
+              }
+            });
+            const mapped = transformed.map(msg => ({
+              ...msg,
+              content: msg.content || (msg as any).text || (msg as any).message || '',
+            }));
+            console.log('[useChat] loaded chat history (content-mapped):', mapped);
+            setMessages(mapped);
           }
-        }
-
-        setTimeout(() => {
-          setProgress(prev => prev ? { ...prev, current: 1 } : null);
-        }, 200);
-
-        // Now load chat history
-        if (!user?.id) throw new Error('User ID is required to load chat history');
-        if (!sessionId) throw new Error('Session ID is required for chat history');
-        api.getChatHistory(sessionId, user.id)
-          .then(historyResponse => {
-            setProgress(prev => prev ? { ...prev, current: 2 } : null);
-            if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
-              const transformed: ChatMessage[] = [];
-              historyResponse.data.forEach((entry: any) => {
-                if (entry.message) {
-                  transformed.push({
-                    id: entry.id || entry._id || `${entry.created_at}-user`,
-                    content: entry.message,
-                    role: "user",
-                    created_at: entry.created_at,
-                  });
-                }
-                if (entry.response) {
-                  transformed.push({
-                    id: entry.id ? entry.id + "-ai" : `${entry.created_at}-ai`,
-                    content: entry.response,
-                    role: "assistant",
-                    created_at: entry.created_at,
-                  });
-                }
-              });
-              const mapped = transformed.map(msg => ({
-                ...msg,
-                content: msg.content || (msg as any).text || (msg as any).message || '',
-              }));
-              console.log('[useChat] loaded chat history (content-mapped):', mapped);
-              setMessages(mapped);
-            }
-          })
-          .catch(() => {
-            setMessages([{
-              id: "0-ai",
-              content: "Hi there! I'm your ConsumerAI assistant. I can help with questions about credit reports, debt collection, and consumer protection laws. What can I help you with today?",
-              role: "assistant",
-              created_at: new Date().toISOString()
-            }]);
-          })
-          .finally(() => {
-            setIsLoading(false);
-            setProgress(null); // Clear progress when done
-          });
-      })();
+        })
+        .catch(() => {
+          setMessages([{
+            id: "0-ai",
+            content: "Hi there! I'm your ConsumerAI assistant. I can help with questions about credit reports, debt collection, and consumer protection laws. What can I help you with today?",
+            role: "assistant",
+            created_at: new Date().toISOString()
+          }]);
+        })
+        .finally(() => {
+          setIsLoading(false);
+          setProgress(null); // Clear progress when done
+        });
+    } else {
+      setCurrentChatId(null);
     }
-  }, [user?.id, currentChatId]);
+  }, [user?.id]);
 
   // Send a message in the current chat (single source of truth)
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
-    
-    // Check for user ID
     if (!user?.id) {
       console.error('[useChat] No user ID available for sending message');
       setError('Please log in to send messages');
       return;
     }
-    
-    console.log('[useChat] Sending message with user ID:', user.id);
     setIsLoading(true);
     setError(null);
-    
-    // Reset agent state
     setAgentState({
       isActive: true,
       events: []
     });
-    
-    // Show thinking animation immediately
     setProgress({
       steps: ['Processing', 'Analyzing', 'Generating Response'],
       current: 0
     });
-    
     try {
-      let sessionId = currentChatId;
-      // If no session, create one first or use the user's ID directly
-      if (!sessionId) {
-        try {
-          console.log('[useChat] Creating new session for user:', user.id);
-          // We can either create a session or just use the user's ID directly
-          // Let's try to create a session first
-          try {
-            console.log('[useChat] Creating session with userId:', user.id);
-            const sessionResponse = await api.createSession({ userId: user.id, sessionName: 'New Chat' }, user.id);
-            console.log('[useChat] Session creation response:', sessionResponse);
-            
-            // Check if we got a valid session response
-            if (sessionResponse && sessionResponse.data && sessionResponse.data.id) {
-              // Response with data wrapper
-              sessionId = sessionResponse.data.id;
-              setCurrentChatId(sessionId);
-              console.log('[useChat] Created session with ID (data wrapper):', sessionId);
-            } else if (sessionResponse && sessionResponse.id) {
-              // Direct response without data wrapper
-              sessionId = sessionResponse.id;
-              setCurrentChatId(sessionId);
-              console.log('[useChat] Created session with ID (direct):', sessionId);
-            } else {
-              // Fallback to using the user's ID as the session ID
-              sessionId = user.id;
-              setCurrentChatId(sessionId);
-              console.log('[useChat] Using user ID as session ID:', sessionId);
-            }
-          } catch (createError) {
-            // If session creation fails, use the user's ID as the session ID
-            console.warn('[useChat] Session creation failed, using user ID as session ID:', createError);
-            sessionId = user.id;
-            setCurrentChatId(sessionId);
-          }
-          
-          if (!sessionId) {
-            throw new Error("Failed to create a new chat session.");
-          }
-        } catch (sessionError) {
-          console.error('[useChat] Session handling error:', sessionError);
-          let errorMsg = "Unknown error";
-          if (sessionError instanceof Error) {
-            errorMsg = sessionError.message;
-          } else if (typeof sessionError === "string") {
-            errorMsg = sessionError;
-          }
-          throw new Error(`Failed to handle chat session: ${errorMsg}`);
-        }
-      }
-      
-      // Update progress animation
-      setProgress(prev => prev ? { ...prev, current: 1, steps: prev.steps } : null);
-      
       const userMessage: ChatMessage = {
         id: `${Date.now()}-user`,
         content: content,
@@ -305,14 +217,10 @@ export function useChat() {
         created_at: new Date().toISOString(),
       };
       setMessages((prev: ChatMessage[]) => [...prev, userMessage]);
-      
-      // Update progress animation
       setProgress(prev => prev ? { ...prev, current: 2, steps: prev.steps } : null);
-      
-      // Simulate agent actions with timeouts
+      // Simulate agent actions with timeouts (unchanged)
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 1 } : null);
-        // Example: If the agent is suggesting a tool/integration, clarify in the event content
         setAgentState(prev => ({
           ...prev,
           events: [...prev.events, {
@@ -323,7 +231,6 @@ export function useChat() {
           }]
         }));
       }, 800);
-
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 2 } : null);
         setAgentState(prev => ({
@@ -336,10 +243,8 @@ export function useChat() {
           }]
         }));
       }, 2000);
-
       setTimeout(() => {
         setProgress(prev => prev ? { ...prev, current: 3 } : null);
-        // Example: If the agent is suggesting a tool/integration, clarify in the event content
         setAgentState(prev => ({
           ...prev,
           events: [...prev.events, {
@@ -347,7 +252,6 @@ export function useChat() {
             content: 'Formulating response based on consumer rights information... (AI Agent Action)',
             timestamp: Date.now()
           },
-          // Example: Suggesting a tool/integration
           {
             type: 'tool_start',
             name: 'mail_tracking',
@@ -357,38 +261,22 @@ export function useChat() {
           ]
         }));
       }, 3000);
-      
-      // Use regular API
-      console.log('[useChat] Sending message with:', { content, sessionId, userId: user.id });
-      // Ensure we have a valid user ID
-      if (!user?.id) {
-        throw new Error('User ID is missing. Please log in again.');
-      }
-      // Ensure we have a valid session ID
-      if (!sessionId) {
-        throw new Error('Session ID is missing. Unable to send message.');
-      }
-      console.log('[useChat] API URL being used:', API_BASE_URL);
-      
+      // Use regular API, always use user.id for both sessionId and userId
       let response;
       try {
-        response = await api.sendMessage(content, sessionId, user.id);
+        response = await api.sendMessage(content, user.id, user.id);
         console.log('[useChat] sendMessage response:', response);
       } catch (error) {
         console.error('[useChat] sendMessage error:', error);
         throw error;
       }
       if (response && response.data) {
-        // The API returns the AI's message in the ChatMessage format.
         setMessages((prev: ChatMessage[]) => response.data ? [...prev, response.data] : prev);
       } else if (response && response.error) {
-        // Display this error to the user
         setError(response.error.message);
       } else {
         setError('Received invalid response from server');
       }
-      
-      // Set agent state to inactive
       setAgentState(prev => ({ ...prev, isActive: false }));
     } catch (err) {
       setError('Failed to send message');
@@ -397,7 +285,7 @@ export function useChat() {
       setIsLoading(false);
       setProgress(null); // Clear progress when done
     }
-  }, [user?.id, currentChatId]);
+  }, [user?.id]);
 
   return {
     messages,
