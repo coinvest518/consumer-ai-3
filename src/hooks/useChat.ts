@@ -46,13 +46,15 @@ export function useChat() {
       api.getChatHistory(user.id, user.id)
         .then(historyResponse => {
           if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
-            const transformed: ChatMessage[] = historyResponse.data.map((entry: any) => ({
-              id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
-              content: entry.message || entry.response || entry.text || '',
-              role: entry.role || (entry.response ? 'assistant' : 'user'),
-              created_at: entry.created_at,
-            }));
-            setMessages(transformed);
+            const transformed: ChatMessage[] = historyResponse.data
+              .map((entry: any) => ({
+                id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
+                content: entry.message || entry.response || entry.text || '',
+                role: entry.role || (entry.response ? 'assistant' : 'user'),
+                created_at: entry.created_at,
+              }))
+              .filter((msg: ChatMessage) => !!msg.content && msg.content.trim() !== '');
+            setMessages(transformed.length > 0 ? transformed : [initialMessage]);
           } else {
             setMessages([initialMessage]);
           }
