@@ -273,8 +273,9 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                   // If content is missing, try to use 'text' or 'message' property as a fallback.
                   content: message.content || (message as any).text || (message as any).message || '',
                 };
-                console.log('[ChatInterface] formatted message:', formattedMessage);
-                return <ChatMessage key={message.id || index} message={formattedMessage} />;
+                // Pass shouldSpeakAI only to AI messages
+                const shouldSpeakAI = formattedMessage.role === 'assistant' ? chatHook.shouldSpeakAI : false;
+                return <ChatMessage key={message.id || index} message={formattedMessage} shouldSpeakAI={shouldSpeakAI} />;
               })
             )}
             {/* Show agent activity when available */}

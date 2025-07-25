@@ -10,13 +10,11 @@ import { useEffect, useContext, createContext } from "react";
 export const AIVoiceMuteContext = createContext<{ muted: boolean; setMuted: (m: boolean) => void }>({ muted: false, setMuted: () => {} });
 interface ChatMessageProps {
   message: ChatMessageType;
+  shouldSpeakAI?: boolean;
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps) {
   const { muted } = useContext(AIVoiceMuteContext);
-  // Import useChat to get shouldSpeakAI
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { shouldSpeakAI } = require("@/hooks/useChat").useChat();
   const isUser = message.role === 'user';
   // Safety check for message structure
   if (!message || !message.content) {
