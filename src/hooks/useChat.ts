@@ -135,23 +135,43 @@ export function useChat() {
   useEffect(() => {
     if (!currentChatId && user?.id) {
       setIsLoading(true);
-      // Show progress animation during initial loading
       setProgress({
         steps: ['Connecting', 'Loading History', 'Preparing Chat'],
         current: 0
       });
-      
-      // Small delay to show the animation
-      setTimeout(() => {
-        setProgress(prev => prev ? { ...prev, current: 1 } : null);
-        
+
+      // Create a session first if needed
+      (async () => {
+        let sessionId = currentChatId;
+        if (!sessionId) {
+          try {
+            const sessionResponse = await api.createSession({ userId: user.id, sessionName: 'New Chat' }, user.id);
+            if (sessionResponse && sessionResponse.data && sessionResponse.data.id) {
+              sessionId = sessionResponse.data.id;
+              setCurrentChatId(sessionId);
+            } else if (sessionResponse && sessionResponse.id) {
+              sessionId = sessionResponse.id;
+              setCurrentChatId(sessionId);
+            } else {
+              sessionId = user.id;
+              setCurrentChatId(sessionId);
+            }
+          } catch (err) {
+            sessionId = user.id;
+            setCurrentChatId(sessionId);
+          }
+        }
+
+        setTimeout(() => {
+          setProgress(prev => prev ? { ...prev, current: 1 } : null);
+        }, 200);
+
+        // Now load chat history
         if (!user?.id) throw new Error('User ID is required to load chat history');
-        if (!currentChatId) throw new Error('Session ID is required for chat history');
-        api.getChatHistory(currentChatId, user.id)
+        if (!sessionId) throw new Error('Session ID is required for chat history');
+        api.getChatHistory(sessionId, user.id)
           .then(historyResponse => {
-            // Update progress
             setProgress(prev => prev ? { ...prev, current: 2 } : null);
-            
             if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
               const transformed: ChatMessage[] = [];
               historyResponse.data.forEach((entry: any) => {
@@ -172,7 +192,6 @@ export function useChat() {
                   });
                 }
               });
-              // Always map 'text' or 'message' to 'content' for loaded chat history
               const mapped = transformed.map(msg => ({
                 ...msg,
                 content: msg.content || (msg as any).text || (msg as any).message || '',
@@ -193,7 +212,7 @@ export function useChat() {
             setIsLoading(false);
             setProgress(null); // Clear progress when done
           });
-      }, 300); // Small delay for animation
+      })();
     }
   }, [user?.id, currentChatId]);
 
