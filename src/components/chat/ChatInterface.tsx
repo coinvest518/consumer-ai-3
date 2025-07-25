@@ -262,11 +262,10 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask about consumer rights, credit reports, debt collection..."
-                disabled={isLoading}
+                disabled={showUploadModal} // Only disable if upload modal is open
                 className={cn(
                   "pr-20 h-11 text-base rounded-xl border-2 transition-all duration-200",
-                  "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                  "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 )}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
