@@ -71,7 +71,11 @@ export function useChat() {
   }, [user?.id, currentChatId]);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !currentChatId || !user?.id) {
+    if (!content.trim()) {
+        // Prevent adding empty user messages
+        return;
+    }
+    if (!currentChatId || !user?.id) {
         setError('User not authenticated or chat session not started.');
         return;
     }
