@@ -77,9 +77,10 @@ export const api = {
   },
 
   // Chat history
-  getChatHistory: (userId: string) => {
+  getChatHistory: (sessionId: string, userId: string) => {
     if (!userId) throw new Error('User ID is required for chat history');
-    return fetchApi('chat/history', {}, userId);
+    if (!sessionId) throw new Error('Session ID is required for chat history');
+    return fetchApi(`chat/history?sessionId=${sessionId}`, {}, userId);
   },
 
   // Session
