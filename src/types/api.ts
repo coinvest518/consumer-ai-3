@@ -14,6 +14,10 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   created_at: string;
   timestamp?: number;
+  decisionTrace?: {
+    usedAgent: string | null;
+    steps: string[];
+  };
 }
 
 export interface ChatSession {

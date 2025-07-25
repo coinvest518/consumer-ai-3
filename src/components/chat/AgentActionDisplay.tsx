@@ -1,4 +1,3 @@
-import React from 'react';
 import { Database, Search, FileText, Globe, Brain, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AgentEvent } from '@/lib/agentCallbacks';
