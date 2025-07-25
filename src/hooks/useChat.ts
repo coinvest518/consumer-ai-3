@@ -76,7 +76,8 @@ export function useChat() {
       
       // Fetch chat history for this chatId (API expects userId)
       if (!user?.id) throw new Error('User ID is required to load chat history');
-      const response = await api.getChatHistory(user.id);
+      if (!currentChatId) throw new Error('Session ID is required for chat history');
+      const response = await api.getChatHistory(currentChatId, user.id);
       console.log('[useChat] getChatHistory response:', response);
       
       // Update progress
@@ -145,7 +146,8 @@ export function useChat() {
         setProgress(prev => prev ? { ...prev, current: 1 } : null);
         
         if (!user?.id) throw new Error('User ID is required to load chat history');
-        api.getChatHistory(user.id)
+        if (!currentChatId) throw new Error('Session ID is required for chat history');
+        api.getChatHistory(currentChatId, user.id)
           .then(historyResponse => {
             // Update progress
             setProgress(prev => prev ? { ...prev, current: 2 } : null);
