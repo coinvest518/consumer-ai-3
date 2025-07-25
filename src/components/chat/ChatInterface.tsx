@@ -33,6 +33,53 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
 
+  // For voice prompt
+  const speakPrompt = (text: string) => {
+    if ('speechSynthesis' in window) {
+      const utter = new window.SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      window.speechSynthesis.speak(utter);
+    }
+  };
+
+  // Speech recognition logic
+  const handleVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition not supported in this browser.');
+      return;
+    }
+    speakPrompt('Please speak your message now.');
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    recognition.onstart = () => {
+      setIsListening(true);
+      // Stop after 30 seconds if not finished
+      timeoutId = setTimeout(() => {
+        recognition.stop();
+      }, 30000);
+    };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue(transcript);
+      setIsListening(false);
+      clearTimeout(timeoutId);
+    };
+    recognition.onerror = (event) => {
+      alert('Speech recognition error: ' + event.error);
+      setIsListening(false);
+      clearTimeout(timeoutId);
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+      clearTimeout(timeoutId);
+    };
+    recognition.start();
+  };
+
   const handleTranscriptChange = (transcript: string) => {
     setInputValue(transcript);
   };
@@ -85,7 +132,6 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling
     if (!inputValue.trim() || isLoading) return;
 
     if (isListening) {
@@ -257,48 +303,27 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         {/* Input Area */}
         <div className="p-2 md:p-4 bg-white border-t sticky bottom-0 z-10">
           <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative flex items-center">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Ask about consumer rights, credit reports, debt collection..."
-                disabled={showUploadModal} // Only disable if upload modal is open
+                placeholder="Type your message..."
                 className={cn(
-                  "pr-20 h-11 text-base rounded-xl border-2 transition-all duration-200",
+                  "h-11 text-base rounded-xl border-2 transition-all duration-200",
                   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 )}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (inputValue.trim() && !isLoading) {
-                      handleSubmit(e);
-                    }
-                  }
-                }}
               />
-              <div className="absolute right-12 top-1/2 -translate-y-1/2">
-                <User className="h-5 w-5 text-gray-400" />
-              </div>
+              <button
+                type="button"
+                aria-label="Speak your message"
+                onClick={handleVoiceInput}
+                className="absolute right-10 top-1/2 -translate-y-1/2 bg-blue-100 rounded-full p-2 hover:bg-blue-200"
+                disabled={isListening}
+              >
+                <Mic className="h-5 w-5 text-blue-600" />
+              </button>
               <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                {/* VoiceInput with tooltip and badge */}
-                <div className="flex items-center gap-1">
-                  <div className="group relative">
-                    <VoiceInput 
-                      onTranscriptChange={handleTranscriptChange} 
-                      onListeningChange={setIsListening} 
-                      aria-label="Click to speak to the AI assistant"
-                    />
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg z-20 whitespace-nowrap">
-                      Click to speak to the AI assistant
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 rounded px-1.5 py-0.5 ml-1 hidden sm:inline">Talk instead</span>
-                </div>
-                {/* Listening indicator */}
-                {isListening && (
-                  <div className="absolute right-0 top-full mt-1 text-xs text-red-600 font-semibold animate-pulse bg-red-50 rounded px-2 py-0.5 shadow">Listening...</div>
-                )}
+                <User className="h-5 w-5 text-gray-400" />
               </div>
             </div>
             <Button 
@@ -318,6 +343,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               )}
             </Button>
           </form>
+          {/* Voice connection state */}
+          {isListening && (
+            <div className="mt-2 text-blue-600 text-sm font-medium flex items-center gap-2">
+              <Mic className="h-4 w-4 animate-pulse" /> Listening...
+            </div>
+          )}
           {/* Quick Actions and Agent Selector */}
           <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-3">
             <AgentSelector 
