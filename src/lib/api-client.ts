@@ -62,7 +62,7 @@ export const api = {
     }, userId);
   },
   // Chat
-  sendMessage: (message: string, sessionId: string, userId: string) => {
+  sendMessage: async (message: string, sessionId: string, userId: string, accessToken?: string) => {
     if (!userId) {
       throw new Error('User ID is required for sending messages');
     }
@@ -70,8 +70,16 @@ export const api = {
       throw new Error('Message and sessionId are required');
     }
     // Always include userId in the body for backend validation
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'user-id': userId
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
     return fetchApi('chat', {
       method: 'POST',
+      headers,
       body: JSON.stringify({ message, sessionId, userId })
     }, userId);
   },
