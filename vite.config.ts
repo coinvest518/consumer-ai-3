@@ -31,10 +31,10 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        // Target should NOT end with /api to avoid double /api/api
-        target: (process.env.VITE_API_URL || 'https://consumer-ai-render.onrender.com').replace(/\/api$/, ''),
+        // Proxy API requests to local Express backend in development
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: true
+        secure: false
       }
     }
   },

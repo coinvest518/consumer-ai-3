@@ -13,27 +13,36 @@ export default function PricingSection() {
   const { toast } = useToast();
 
   const freePlanFeatures = [
-    "5 questions per day",
-    "Basic legal information",
+    "10 credits/month",
+    "Basic AI model",
     "Standard templates",
     "Web access only",
+    "Community support"
+  ];
+
+  const starterPlanFeatures = [
+    "100 credits/month",
+    "Access to advanced AI models",
+    "File uploads",
+    "Longer chat history",
+    "Email support"
   ];
 
   const proPlanFeatures = [
-    "Unlimited questions",
-    "Detailed legal explanations",
-    "Premium document templates",
-    "SMS and email notifications",
-    "Priority response times",
-    "Web, mobile and email access",
+    "300 credits/month",
+    "All Starter features",
+    "Priority queue",
+    "Advanced features (summarization, export)",
+    "Early access to new features",
+    "API access"
   ];
 
-  const premiumPlanFeatures = [
-    "100 credits",
+  const powerPlanFeatures = [
+    "1500 credits/month",
     "All Pro features",
-    "Full access to all AI agents",
-    "Priority support",
-    "Best value for power users",
+    "Dedicated support",
+    "Custom integrations",
+    "Best value for teams & power users"
   ];
 
   // If you want to use your backend to create a Stripe session, use API_BASE_URL here.
@@ -79,7 +88,7 @@ export default function PricingSection() {
           </p>
         </motion.div>
 
-        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-3">
+        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-4 sm:gap-6 lg:max-w-6xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
           {/* Free Plan */}
           <motion.div 
             className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 bg-white"
@@ -91,7 +100,7 @@ export default function PricingSection() {
             <div className="p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Free</h3>
               <p className="mt-4 text-sm text-gray-500">
-                Perfect for quick questions and occasional help with consumer issues.
+                Try the basics for free. Great for light users and exploring the platform.
               </p>
               <p className="mt-8">
                 <span className="text-4xl font-extrabold text-gray-900">$0</span>
@@ -116,6 +125,45 @@ export default function PricingSection() {
             </div>
           </motion.div>
 
+          {/* Starter Plan */}
+          <motion.div 
+            className="border border-blue-400 rounded-lg shadow-md divide-y divide-gray-200 bg-white scale-105"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="p-6 pt-10 relative">
+              <div className="absolute left-1/2 -top-4 -translate-x-1/2 z-10">
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 shadow-md border border-blue-200">
+                  Starter
+                </span>
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Starter</h3>
+              <p className="mt-4 text-sm text-gray-500">
+                For regular users who want more power and flexibility.
+              </p>
+              <p className="mt-8">
+                <span className="text-4xl font-extrabold text-gray-900">$9.99</span>
+                <span className="text-base font-medium text-gray-500">/mo</span>
+              </p>
+              <Button className="mt-8 w-full bg-blue-500 text-white hover:bg-blue-600 border-blue-700">
+                Upgrade to Starter
+              </Button>
+            </div>
+            <div className="pt-6 pb-8 px-6">
+              <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
+              <ul className="mt-6 space-y-4">
+                {starterPlanFeatures.map((feature, index) => (
+                  <li key={index} className="flex space-x-3">
+                    <CheckIcon className="flex-shrink-0 h-5 w-5 text-blue-500" />
+                    <span className="text-sm text-gray-500">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </motion.div>
+
           {/* Pro Plan */}
           <motion.div 
             className="border border-primary rounded-lg shadow-md divide-y divide-gray-200 bg-white"
@@ -132,18 +180,45 @@ export default function PricingSection() {
               </div>
               <h3 className="text-lg leading-6 font-medium text-gray-900">Pro</h3>
               <p className="mt-4 text-sm text-gray-500">
-                Comprehensive support for all your consumer law needs.
+                For power users and professionals who need more credits and features.
               </p>
               <p className="mt-8">
-                <span className="text-4xl font-extrabold text-gray-900">$9.99</span>
+                <span className="text-4xl font-extrabold text-gray-900">$49.99</span>
                 <span className="text-base font-medium text-gray-500">/mo</span>
               </p>
               <Button
-                className="mt-8 w-full"
-                onClick={handlePayment}
-                disabled={isLoading || !user}
+                className="mt-8 w-full bg-primary text-white hover:bg-primary-700 border-primary-800"
+                onClick={async () => {
+                  if (!user) {
+                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    const res = await fetch('/api/create-checkout-session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan: 'pro', userId: user.id })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      throw new Error(data.error || 'Failed to create checkout session');
+                    }
+                  } catch (error) {
+                    let message = 'Payment failed';
+                    if (error && typeof error === 'object' && 'message' in error) {
+                      message = (error as any).message;
+                    }
+                    toast({ title: 'Error', description: message, variant: 'destructive' });
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
               >
-                {isLoading ? 'Processing...' : user ? 'Upgrade to Pro' : 'Login to Upgrade'}
+                {isLoading ? 'Redirecting...' : 'Upgrade to Pro'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -151,7 +226,7 @@ export default function PricingSection() {
               <ul className="mt-6 space-y-4">
                 {proPlanFeatures.map((feature, index) => (
                   <li key={index} className="flex space-x-3">
-                    <CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" />
+                    <CheckIcon className="flex-shrink-0 h-5 w-5 text-primary" />
                     <span className="text-sm text-gray-500">{feature}</span>
                   </li>
                 ))}
@@ -159,7 +234,7 @@ export default function PricingSection() {
             </div>
           </motion.div>
 
-          {/* Premium Plan */}
+          {/* Power Plan */}
           <motion.div 
             className="border-2 border-yellow-400 rounded-lg shadow-lg divide-y divide-gray-200 bg-white scale-105"
             initial={{ opacity: 0, y: 20 }}
@@ -170,28 +245,56 @@ export default function PricingSection() {
             <div className="p-6 pt-10 relative">
               <div className="absolute left-1/2 -top-4 -translate-x-1/2 z-10">
                 <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-semibold bg-yellow-200 text-yellow-900 shadow-md border border-yellow-300">
-                  Best Value
+                  Power
                 </span>
               </div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Premium</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Power</h3>
               <p className="mt-4 text-sm text-gray-500">
-                100 credits per month, all features, and full AI agent access.
+                For teams and high-volume users who need the most credits and support.
               </p>
               <p className="mt-8">
-                <span className="text-4xl font-extrabold text-gray-900">$50</span>
+                <span className="text-4xl font-extrabold text-gray-900">$99</span>
                 <span className="text-base font-medium text-gray-500">/month</span>
               </p>
               <Button
                 className="mt-8 w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 border-yellow-500"
-                onClick={() => window.location.href = 'https://buy.stripe.com/6oU28rgaCbn40uD7nGew80k'}
+                onClick={async () => {
+                  if (!user) {
+                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    const res = await fetch('/api/create-checkout-session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan: 'power', userId: user.id })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      throw new Error(data.error || 'Failed to create checkout session');
+                    }
+                  } catch (error) {
+                    let message = 'Payment failed';
+                    if (error && typeof error === 'object' && 'message' in error) {
+                      message = (error as any).message;
+                    }
+                    toast({ title: 'Error', description: message, variant: 'destructive' });
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
               >
-                Get 100 Credits Monthly
+                {isLoading ? 'Redirecting...' : 'Upgrade to Power'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">
               <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
               <ul className="mt-6 space-y-4">
-                {premiumPlanFeatures.map((feature, index) => (
+                {powerPlanFeatures.map((feature, index) => (
                   <li key={index} className="flex space-x-3">
                     <CheckIcon className="flex-shrink-0 h-5 w-5 text-yellow-500" />
                     <span className="text-sm text-gray-500">{feature}</span>

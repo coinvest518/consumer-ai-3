@@ -146,7 +146,8 @@ export default function EnhancedDashboard() {
   const [metrics, setMetrics] = useState({
     dailyLimit: 5,
     chatsUsed: 0,
-    remaining: 5
+    remaining: 5,
+    credits: 0
   });
   // Removed connectionStatus state
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -177,11 +178,23 @@ export default function EnhancedDashboard() {
       } 
     });
   };
+  // Fetch user stats and credits from backend
   const refetchMetrics = async () => {
     try {
       if (!user) return;
-      // Replace with your API call if needed
-      setMetrics((prev) => ({ ...prev }));
+      // Fetch user stats (questions)
+      const statsRes = await fetch(`/api/user/stats?userId=${user.id}`);
+      const statsData = await statsRes.json();
+      // Fetch user credits
+      const creditsRes = await fetch(`/api/user/credits?userId=${user.id}`);
+      const creditsData = await creditsRes.json();
+      setMetrics((prev) => ({
+        ...prev,
+        dailyLimit: statsData?.dailyLimit ?? prev.dailyLimit,
+        chatsUsed: statsData?.chatsUsed ?? prev.chatsUsed,
+        remaining: statsData?.remaining ?? prev.remaining,
+        credits: creditsData?.credits ?? prev.credits
+      }));
     } catch (err) {
       console.error('Error fetching metrics:', err);
     }
@@ -257,6 +270,10 @@ export default function EnhancedDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Questions Asked:</span>
                       <span className="font-medium">{metrics.chatsUsed}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Paid Credits:</span>
+                      <span className="font-medium">{metrics.credits}</span>
                     </div>
                     <div className="mt-4">
                       <Button 
