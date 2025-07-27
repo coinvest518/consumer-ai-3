@@ -23,4 +23,4 @@
   },
   "include": ["src", "shared", "api"],
   "references": [{ "path": "./tsconfig.node.json" }]
-} 
+}

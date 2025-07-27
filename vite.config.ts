@@ -15,13 +15,15 @@ dotenv.config(); // Load environment variables from .env file
 export default defineConfig({
   base,
   define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    global: 'window',
   },
   plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, './shared')
+      '@shared': path.resolve(__dirname, './shared'),
+      buffer: 'buffer',
     }
   },
   server: {

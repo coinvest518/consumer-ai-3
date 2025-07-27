@@ -1,15 +1,18 @@
+import { WagmiProvider } from 'wagmi';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { inject } from "@vercel/analytics";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getBaseUrl } from "./lib/config";
-import "./debug-auth"; // Import debug helper
+import "./debug-auth";
 
 
-// Import pages
+import { createAppKit } from '@reown/appkit/react';
+import { mainnet, arbitrum } from '@reown/appkit/networks';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+
 import Home from "./pages/Home";
 import Chat from "./pages/Chat";
 import Login from "./pages/Login";
@@ -20,32 +23,67 @@ import ThankYou from "./pages/ThankYou";
 import Pricing from "./pages/Pricing";
 import CreditBuilderPage from "./pages/CreditBuilderPage";
 
-inject();
-function App() {
-  // Get base URL for the router
-  const baseUrl = getBaseUrl();
+const projectId = 'cd2c15a170750ad01e62ef80f2ba74f4';
 
+
+// AppKit metadata
+const metadata = {
+  name: 'AppKit Example',
+  description: 'AppKit Example',
+  url: window.location.origin,
+  icons: ['https://avatars.githubusercontent.com/u/179229932']
+};
+
+// Set the networks as a non-empty tuple of AppKitNetwork
+const networks = [mainnet, arbitrum] as [typeof mainnet, ...typeof arbitrum[]];
+
+// Create QueryClient instance
+const queryClient = new QueryClient();
+
+// Create Wagmi Adapter
+const wagmiAdapter = new WagmiAdapter({
+  networks: [...networks],
+  projectId
+});
+
+// Create modal
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks,
+  projectId,
+  metadata,
+  features: {
+    analytics: true
+  }
+});
+
+inject();
+
+function App() {
+  const baseUrl = getBaseUrl();
   return (
-    <BrowserRouter basename={baseUrl}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-              <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/credit-builder" element={<ProtectedRoute><CreditBuilderPage /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+        <BrowserRouter basename={baseUrl}>
+          <AuthProvider>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/thank-you" element={<ThankYou />} />
+                <Route path="/credit-builder" element={<ProtectedRoute><CreditBuilderPage /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          </AuthProvider>
+        </BrowserRouter>
+      </WagmiProvider>
+    </QueryClientProvider>
   );
 }
 

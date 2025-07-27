@@ -62,7 +62,7 @@ export const api = {
     }, userId);
   },
   // Chat
-  sendMessage: async (message: string, sessionId: string, userId: string, accessToken?: string) => {
+  sendMessage: async (message: string, sessionId: string, userId: string, socketId?: string, accessToken?: string) => {
     if (!userId) {
       throw new Error('User ID is required for sending messages');
     }
@@ -77,10 +77,12 @@ export const api = {
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
+    const body: any = { message, sessionId, userId };
+    if (socketId) body.socketId = socketId;
     return fetchApi('chat', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ message, sessionId, userId })
+      body: JSON.stringify(body)
     }, userId);
   },
 

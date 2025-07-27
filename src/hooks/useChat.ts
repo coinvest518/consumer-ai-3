@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api-client";
+import socket from "@/lib/socket";
 import { useAuth } from "@/hooks/useAuth";
 import type { ChatMessage } from "@/types/api";
 import { AgentEvent } from "@/lib/agentCallbacks";
@@ -100,7 +101,8 @@ export function useChat() {
     // Example: setShouldSpeakAI(true) when user sends via voice.
 
     try {
-      const response = await api.sendMessage(content, user.id, user.id);
+      const socketId = socket.id;
+      const response = await api.sendMessage(content, user.id, user.id, socketId);
       if (response && response.data) {
         setMessages(prev => [...prev, response.data]);
         // After AI response, reset shouldSpeakAI to false

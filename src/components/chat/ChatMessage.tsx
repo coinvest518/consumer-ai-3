@@ -1,11 +1,11 @@
 import { useState, useEffect, useContext, createContext } from "react";
 import { io, Socket } from "socket.io-client";
 // Simple Socket.IO hook for agent steps
+
+import socket from "@/lib/socket";
 function useAgentSteps(sessionId: string) {
   const [steps, setSteps] = useState<any[]>([]);
   const [isThinking, setIsThinking] = useState(false);
-  // Only create socket once
-  const [socket] = useState(() => io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001"));
 
   useEffect(() => {
     if (!sessionId) return;

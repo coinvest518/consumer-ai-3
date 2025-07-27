@@ -130,7 +130,31 @@ app.use('/api', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 API proxy running on http://localhost:${PORT}`);
+
+// Start HTTP server and attach Socket.IO
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+
+const httpServer = createServer(app);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('Socket.IO client connected:', socket.id);
+  // Example: join room, handle events, etc.
+  socket.on('join', (sessionId) => {
+    socket.join(sessionId);
+    console.log(`Socket ${socket.id} joined session ${sessionId}`);
+  });
+  // Add more event handlers as needed
+});
+
+httpServer.listen(PORT, () => {
+  console.log(`🚀 API proxy + Socket.IO running on http://localhost:${PORT}`);
   console.log(`🔄 Forwarding all API requests to ${RENDER_API_URL}`);
 });

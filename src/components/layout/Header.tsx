@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
+import ConnectWalletButton from "@/components/wallet/ConnectWalletButton";
+
 export default function Header() {
   const { user, signOut } = useAuth();
 
@@ -32,6 +34,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
+          <ConnectWalletButton />
           {user ? (
             <>
               <Link to="/dashboard">
