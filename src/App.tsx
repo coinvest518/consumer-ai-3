@@ -10,7 +10,25 @@ import "./debug-auth";
 
 
 import { createAppKit } from '@reown/appkit/react';
-import { mainnet, arbitrum } from '@reown/appkit/networks';
+import {
+  mainnet,
+  polygon,
+  polygonAmoy,
+  bsc,
+  arbitrum,
+  optimism,
+  base,
+  avalanche,
+  fantom,
+  zksync,
+  linea,
+  scroll,
+  gnosis,
+  celo,
+  moonbeam,
+  aurora,
+  cronos,
+} from '@reown/appkit/networks';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 
 import Home from "./pages/Home";
@@ -22,6 +40,8 @@ import NotFound from "./pages/not-found";
 import ThankYou from "./pages/ThankYou";
 import Pricing from "./pages/Pricing";
 import CreditBuilderPage from "./pages/CreditBuilderPage";
+
+
 
 const projectId = 'cd2c15a170750ad01e62ef80f2ba74f4';
 
@@ -35,8 +55,26 @@ const metadata = {
 };
 
 // Set the networks as a non-empty tuple of AppKitNetwork
-const networks = [mainnet, arbitrum] as [typeof mainnet, ...typeof arbitrum[]];
-
+import type { AppKitNetwork } from '@reown/appkit-common';
+const networks = [
+  mainnet,
+  polygon,
+  polygonAmoy,
+  bsc,
+  arbitrum,
+  optimism,
+  base,
+  avalanche,
+  fantom,
+  zksync,
+  linea,
+  scroll,
+  gnosis,
+  celo,
+  moonbeam,
+  aurora,
+  cronos,
+] as [AppKitNetwork, ...AppKitNetwork[]];
 // Create QueryClient instance
 const queryClient = new QueryClient();
 
@@ -47,6 +85,7 @@ const wagmiAdapter = new WagmiAdapter({
 });
 
 // Create modal
+
 createAppKit({
   adapters: [wagmiAdapter],
   networks,

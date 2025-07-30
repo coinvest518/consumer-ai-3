@@ -1,16 +1,33 @@
+
 import { motion } from "framer-motion";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_BASE_URL } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
+
+// useNavigate is now imported above
+// This button now triggers the modal in Header via a custom event
+// This button now triggers the modal in Header via a custom event
+function BuyCreditsWithCryptoButton() {
+  return (
+    <Button
+      variant="outline"
+      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-md hover:from-purple-600 hover:to-blue-600"
+      onClick={() => window.dispatchEvent(new CustomEvent('open-crypto-modal'))}
+    >
+      Buy Credits with Crypto
+    </Button>
+  );
+}
 
 export default function PricingSection() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const freePlanFeatures = [
     "10 credits/month",
@@ -45,30 +62,7 @@ export default function PricingSection() {
     "Best value for teams & power users"
   ];
 
-  // If you want to use your backend to create a Stripe session, use API_BASE_URL here.
-  // Otherwise, keep the direct Stripe link.
-  const handlePayment = async () => {
-    try {
-      setIsLoading(true);
-      // Example: Use API_BASE_URL for a backend call (demonstration only)
-      // This will not actually create a session unless your backend supports it
-      if (user) {
-        // Example API usage
-        await fetch(`${API_BASE_URL}/user/upgrade`, { method: 'POST', credentials: 'include' });
-      }
-      // For now, keep the direct Stripe payment link:
-      window.location.href = 'https://buy.stripe.com/9AQeYP2cUcq0eA0bIU';
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to redirect to payment page",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // ...existing code...
 
   return (
     <section id="pricing" className="py-16 bg-white">
@@ -89,6 +83,11 @@ export default function PricingSection() {
         </motion.div>
 
         <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-4 sm:gap-6 lg:max-w-6xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
+          {/* Buy with Crypto Button - visible at top of pricing section */}
+          <div className="flex justify-center mt-8 mb-4 col-span-4">
+            {/* Reown modal trigger for multi-chain wallet connect/payment */}
+            <BuyCreditsWithCryptoButton />
+          </div>
           {/* Free Plan */}
           <motion.div 
             className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 bg-white"
@@ -147,7 +146,10 @@ export default function PricingSection() {
                 <span className="text-4xl font-extrabold text-gray-900">$9.99</span>
                 <span className="text-base font-medium text-gray-500">/mo</span>
               </p>
-              <Button className="mt-8 w-full bg-blue-500 text-white hover:bg-blue-600 border-blue-700">
+              <Button
+                className="mt-8 w-full bg-blue-500 text-white hover:bg-blue-600 border-blue-700"
+                onClick={() => navigate('/upgrade/starter')}
+              >
                 Upgrade to Starter
               </Button>
             </div>

@@ -278,11 +278,18 @@ export default function EnhancedDashboard() {
                     <div className="mt-4">
                       <Button 
                         variant="outline" 
-                        className="w-full"
+                        className="w-full mb-2"
                         onClick={() => { setIsUpgradeLoading(true); window.location.href = 'https://buy.stripe.com/9AQeYP2cUcq0eA0bIU'; setIsUpgradeLoading(false); }}
                         disabled={isUpgradeLoading}
                       >
                         {isUpgradeLoading ? 'Processing...' : 'Get 50 More Credits ($9.99)'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-md hover:from-purple-600 hover:to-blue-600"
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-crypto-modal'))}
+                      >
+                        Buy Credits with Crypto
                       </Button>
                     </div>
                   </div>
