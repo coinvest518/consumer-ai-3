@@ -108,10 +108,16 @@ export const api = {
     return fetchApi('session', {}, userId);
   },
 
-  // User limits
-  getChatLimits: (userId: string) => {
-    if (!userId) throw new Error('User ID is required for getChatLimits');
-    return fetchApi('users/limits', {}, userId);
+  // User stats
+  getUserStats: (userId: string) => {
+    if (!userId) throw new Error('User ID is required for getUserStats');
+    return fetchApi(`user/stats?userId=${userId}`, {}, userId);
+  },
+
+  // User credits
+  getUserCredits: (userId: string) => {
+    if (!userId) throw new Error('User ID is required for getUserCredits');
+    return fetchApi(`user/credits?userId=${userId}`, {}, userId);
   },
 
   // Storage quota

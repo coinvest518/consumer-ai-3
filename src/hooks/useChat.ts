@@ -42,6 +42,48 @@ export function useChat() {
     events: []
   });
 
+  // Socket event listeners for agent activity
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleAgentStep = (data: any) => {
+      setAgentState(prev => ({
+        isActive: true,
+        events: [...prev.events, {
+          type: 'step',
+          tool: data.tool,
+          input: data.toolInput,
+          timestamp: data.timestamp || new Date().toISOString()
+        }]
+      }));
+    };
+
+    const handleThinkingStart = () => {
+      setAgentState({ isActive: true, events: [] });
+    };
+
+    const handleThinkingComplete = (data: any) => {
+      setAgentState(prev => ({ ...prev, isActive: false }));
+    };
+
+    const handleThinkingError = (error: string) => {
+      setAgentState({ isActive: false, events: [] });
+      setError(error);
+    };
+
+    socket.on('agent-step', handleAgentStep);
+    socket.on('agent-thinking-start', handleThinkingStart);
+    socket.on('agent-thinking-complete', handleThinkingComplete);
+    socket.on('agent-thinking-error', handleThinkingError);
+
+    return () => {
+      socket.off('agent-step', handleAgentStep);
+      socket.off('agent-thinking-start', handleThinkingStart);
+      socket.off('agent-thinking-complete', handleThinkingComplete);
+      socket.off('agent-thinking-error', handleThinkingError);
+    };
+  }, []);
+
   useEffect(() => {
     if (user?.id && user.id !== currentChatId) {
       setCurrentChatId(user.id);
@@ -52,7 +94,7 @@ export function useChat() {
             const transformed: ChatMessage[] = historyResponse.data
               .map((entry: any) => ({
                 id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
-                content: entry.message || entry.response || entry.text || '',
+                content: entry.content || entry.message || entry.response || entry.text || '',
                 role: entry.role || (entry.response ? 'assistant' : 'user'),
                 created_at: entry.created_at,
               }))
@@ -104,7 +146,13 @@ export function useChat() {
       const socketId = socket.id;
       const response = await api.sendMessage(content, user.id, user.id, socketId);
       if (response && response.data) {
-        setMessages(prev => [...prev, response.data]);
+        const aiMessage: ChatMessage = {
+          id: response.data.messageId || `${Date.now()}-ai`,
+          content: response.data.message,
+          role: "assistant",
+          created_at: response.data.created_at || new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiMessage]);
         // After AI response, reset shouldSpeakAI to false
         setShouldSpeakAI(false);
       } else {
@@ -118,7 +166,7 @@ export function useChat() {
     }
   }, [currentChatId, user?.id]);
   
-    const loadChatById = useCallback(async (chatId: string) => {
+  const loadChatById = useCallback(async (chatId: string) => {
     if (!chatId || !user?.id) return;
     setIsLoading(true);
     setError(null);
@@ -128,7 +176,7 @@ export function useChat() {
       if (response.data && Array.isArray(response.data)) {
         const transformed: ChatMessage[] = response.data.map((entry: any) => ({
             id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
-            content: entry.message || entry.response || entry.text || '',
+            content: entry.content || entry.message || entry.response || entry.text || '',
             role: entry.role || (entry.response ? 'assistant' : 'user'),
             created_at: entry.created_at,
         }));

@@ -11,6 +11,7 @@ import { AgentCard } from "@/components/ui/agent-card";
 import { TrackingTimeline, TrackingEvent } from "@/components/ui/tracking-timeline";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api-client";
 
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
@@ -180,12 +181,12 @@ export default function EnhancedDashboard() {
   const refetchMetrics = async () => {
     try {
       if (!user) return;
-      // Fetch user stats (questions)
-      const statsRes = await fetch(`/api/user/stats?userId=${user.id}`);
-      const statsData = await statsRes.json();
-      // Fetch user credits
-      const creditsRes = await fetch(`/api/user/credits?userId=${user.id}`);
-      const creditsData = await creditsRes.json();
+      // Use the API client methods
+      const [statsData, creditsData] = await Promise.all([
+        api.getUserStats(user.id),
+        api.getUserCredits(user.id)
+      ]);
+      
       setMetrics((prev) => ({
         ...prev,
         dailyLimit: statsData?.dailyLimit ?? prev.dailyLimit,
