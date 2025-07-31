@@ -50,10 +50,11 @@ export function useChat() {
       setAgentState(prev => ({
         isActive: true,
         events: [...prev.events, {
-          type: 'step',
-          tool: data.tool,
-          input: data.toolInput,
-          timestamp: data.timestamp || new Date().toISOString()
+          type: 'agent_action',
+          name: data.tool,
+          content: data.toolInput,
+          data: data,
+          timestamp: Date.now()
         }]
       }));
     };
