@@ -3,14 +3,15 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   Bot, Search, Calendar, FileText, Scale, Mail, Package, 
-  MessageSquare, BarChart3, Upload, Clock, RefreshCw, Menu, CheckCircle, AlertCircle, Loader2
+  MessageSquare, BarChart3, Clock, RefreshCw, Menu, CheckCircle, AlertCircle, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AgentCard } from "@/components/ui/agent-card";
 import { TrackingTimeline, TrackingEvent } from "@/components/ui/tracking-timeline";
-import { FileUploadZone } from "@/components/ui/file-upload";
+
 import { useAuth } from "@/contexts/AuthContext";
+
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
 import TavusChatbot from "../components/TavusChatbot";
@@ -160,10 +161,7 @@ export default function EnhancedDashboard() {
     }
   };
 
-  // File upload
-  const handleFileUpload = (files: File[]) => {
-    console.log("Files uploaded:", files);
-  };
+
 
   // Sidebar
   const handleSidebarToggle = () => {
@@ -360,21 +358,8 @@ export default function EnhancedDashboard() {
               </div>
             </section>
 
-            {/* Two Column Layout: Upload & Tracking */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Document Upload Section */}
-              <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-gray-900">Upload Documents</h2>
-                  <Upload className="h-5 w-5 text-gray-400" />
-                </div>
-                <FileUploadZone
-                  acceptedFileTypes={['application/pdf', 'image/*']}
-                  maxFileSize={10 * 1024 * 1024}
-                  onUpload={handleFileUpload}
-                  showPreview={true}
-                />
-              </section>
+            {/* Tracking Section */}
+            <div className="grid grid-cols-1 gap-8">
               {/* Tracking Section */}
               <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-6">

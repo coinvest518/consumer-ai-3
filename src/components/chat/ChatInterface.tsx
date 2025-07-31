@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, Bot, User, Sparkles, Upload, X, Eye, EyeOff, Mic } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { Send, Loader2, Bot, User, Sparkles, X, Eye, EyeOff, Mic } from "lucide-react";
 import VoiceInput from './VoiceInput';
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
 import ThinkingAnimation from "./ThinkingAnimation";
 import AgentSelector from "./AgentSelector";
 import { ToolPanel, defaultTools } from "./ToolPanel";
-import { FileUploadZone } from "@/components/ui/file-upload";
 import { useChat } from "@/hooks/useChat";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
@@ -25,15 +27,18 @@ interface ChatInterfaceProps {
 export default function ChatInterface(props: ChatInterfaceProps) {
   // Use props if provided, otherwise useChat hook
   const chatHook = useChat();
+  const { user } = useAuth();
+
   const [inputValue, setInputValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [toolPanelExpanded, setToolPanelExpanded] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
 
   // For voice prompt
+
   const speakPrompt = (text: string) => {
     if ('speechSynthesis' in window) {
       const utter = new window.SpeechSynthesisUtterance(text);
@@ -115,23 +120,10 @@ export default function ChatInterface(props: ChatInterfaceProps) {
     }
   }, [error]);
 
-  // Handle file upload
-  const handleFileUpload = (files: File[]) => {
-    // In a real implementation, you would upload the files to a server
-    console.log("Files to upload:", files);
-    
-    // For now, just close the modal and set the input value to indicate a file was uploaded
-    setShowUploadModal(false);
-    setInputValue(`I've uploaded ${files.length} file(s): ${files.map(f => f.name).join(", ")}. Please analyze this document.`);
-  };
+
   
   // Handle tool selection
   const handleToolSelect = (toolId: string) => {
-    if (toolId === "upload") {
-      setShowUploadModal(true);
-      return;
-    }
-    
     setSelectedTool(toolId === selectedTool ? null : toolId);
     setSelectedAgent(toolId === selectedTool ? null : toolId);
   };
@@ -226,15 +218,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 </>
               )}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowUploadModal(true)}
-              className="flex items-center gap-1 text-xs h-8"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Upload</span>
-            </Button>
+
             <div className="hidden sm:flex items-center gap-1">
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span className="text-xs text-gray-600">AI-Powered</span>
@@ -383,60 +367,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
             </button>
           </div>
         </div>
-        
-        {/* File Upload Modal */}
-        <AnimatePresence>
-          {showUploadModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-              onClick={() => setShowUploadModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-xl shadow-xl max-w-md w-full p-6"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Upload Document</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1"
-                    onClick={() => setShowUploadModal(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <FileUploadZone
-                  acceptedFileTypes={['application/pdf', 'image/*']}
-                  maxFileSize={10 * 1024 * 1024} // 10MB
-                  onUpload={handleFileUpload}
-                  showPreview={true}
-                />
-                
-                <div className="mt-6 flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowUploadModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() => setShowUploadModal(false)}
-                  >
-                    Done
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+
       </div>
     </div>
   );

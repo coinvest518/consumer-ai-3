@@ -31,10 +31,18 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        // Proxy API requests to local Express backend in development
         target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        rewrite: (path) => path,
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxying request:', req.method, req.url, '-> http://localhost:3001' + req.url);
+          });
+        }
       }
     }
   },

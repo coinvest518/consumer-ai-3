@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, Search, Calendar, FileText, Scale, Mail, Package, Upload, Bot } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Calendar, FileText, Scale, Mail, Package, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -122,20 +122,7 @@ export function ToolPanel({
           );
         })}
       </div>
-      
-      {expanded && (
-        <div className="p-2 md:p-3 border-t md:border-t-0">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full"
-            onClick={() => onSelectTool("upload")}
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Document
-          </Button>
-        </div>
-      )}
+
     </motion.div>
   );
 }
