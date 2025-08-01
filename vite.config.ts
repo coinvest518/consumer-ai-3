@@ -53,7 +53,6 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      external: ['react-is'],
       output: {
         manualChunks: {
           // Vendor chunks
