@@ -262,15 +262,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 return <ChatMessage key={message.id || index} message={formattedMessage} shouldSpeakAI={shouldSpeakAI} />;
               })
             )}
-            {/* Show agent activity when available */}
-            {showAgentActivity && agentState && agentState.isActive && agentState.events.length > 0 && (
+            {/* Show agent activity when available, otherwise show thinking animation */}
+            {showAgentActivity && agentState && agentState.isActive && agentState.events.length > 0 ? (
               <div className="animate-pulse-once">
                 <AgentActionDisplay events={agentState.events} />
               </div>
-            )}
-            
-            {/* Show thinking animation when loading */}
-            {(showProgress && isLoading) && (
+            ) : (showProgress && isLoading) && (
               <div className="mt-4 flex justify-center">
                 {chatHook.progress ? (
                   <ThinkingAnimation progress={chatHook.progress} />
