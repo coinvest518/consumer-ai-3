@@ -61,7 +61,7 @@ export default defineConfig({
           'crypto-vendor': ['ethers', 'viem', '@wagmi/core', 'wagmi'],
           'wallet-vendor': ['@reown/appkit', '@reown/appkit-wagmi', '@walletconnect/universal-provider'],
           'animation-vendor': ['framer-motion'],
-          'chart-vendor': ['recharts'],
+
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
 
           'utils': ['clsx', 'tailwind-merge', 'class-variance-authority']
@@ -70,6 +70,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
+    include: ['react-is'],
     esbuildOptions: {
       target: 'es2020'
     }

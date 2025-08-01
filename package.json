@@ -23,7 +23,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.857.0",
     "@datastax/astra-db-ts": "^2.0.1",
-
     "@hookform/resolvers": "^5.1.1",
     "@langchain/community": "^0.3.0",
     "@langchain/core": "^0.3.0",
@@ -88,18 +87,15 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.9.9",
     "openai": "^4.28.0",
-
-
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-day-picker": "^9.8.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.60.0",
+    "react-is": "^19.1.1",
     "react-resizable-panels": "^3.0.3",
     "react-router-dom": "^6.22.1",
     "react-speech-recognition": "^4.0.1",
-    "recharts": "^3.1.0",
-
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "stripe": "^14.25.0",
@@ -114,18 +110,14 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-
     "@types/node": "^24.1.0",
     "@types/nodemailer": "^6.4.17",
-
     "@types/react": "^19.1.8",
-
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
     "concurrently": "^9.2.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.20.3",
