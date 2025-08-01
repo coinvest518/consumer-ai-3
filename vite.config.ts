@@ -48,9 +48,26 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false, // Set to false for production
+    sourcemap: false,
     assetsDir: 'assets',
-    emptyOutDir: true
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
+          'crypto-vendor': ['ethers', 'viem', '@wagmi/core', 'wagmi'],
+          'wallet-vendor': ['@reown/appkit', '@reown/appkit-wagmi', '@walletconnect/universal-provider'],
+          'animation-vendor': ['framer-motion'],
+          'chart-vendor': ['recharts'],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'langchain-vendor': ['@langchain/openai', '@langchain/core', '@langchain/community'],
+          'utils': ['clsx', 'tailwind-merge', 'class-variance-authority']
+        }
+      }
+    }
   },
   optimizeDeps: {
     esbuildOptions: {

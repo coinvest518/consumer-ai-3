@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { Send, Loader2, Bot, User, Sparkles, X, Eye, EyeOff, Mic } from "lucide-react";
-import VoiceInput from './VoiceInput';
+
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ interface ChatInterfaceProps {
 export default function ChatInterface(props: ChatInterfaceProps) {
   // Use props if provided, otherwise useChat hook
   const chatHook = useChat();
-  const { user } = useAuth();
+  // const { user } = useAuth(); // Removed unused user variable
 
   const [inputValue, setInputValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
