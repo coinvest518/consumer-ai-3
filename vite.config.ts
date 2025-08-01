@@ -53,6 +53,7 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
+      external: ['react-is'],
       output: {
         manualChunks: {
           // Vendor chunks
@@ -63,7 +64,7 @@ export default defineConfig({
           'animation-vendor': ['framer-motion'],
           'chart-vendor': ['recharts'],
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'langchain-vendor': ['@langchain/openai', '@langchain/core', '@langchain/community'],
+
           'utils': ['clsx', 'tailwind-merge', 'class-variance-authority']
         }
       }
