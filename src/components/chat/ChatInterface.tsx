@@ -4,7 +4,7 @@ import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
-import ThinkingAnimation from "./ThinkingAnimation";
+
 import AgentSelector from "./AgentSelector";
 import { defaultTools } from "./ToolPanel";
 import { useChat } from "@/hooks/useChat";
@@ -182,17 +182,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
           </div>
         </div>
 
-        {agentState.isActive && agentState.events.length > 0 && (
-          <div className="p-4 border-t border-gray-200">
-            <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Brain className="h-4 w-4 animate-pulse text-blue-600" />
-              Agent Activity
-            </h3>
-            <div className="max-h-32 overflow-y-auto">
-              <AgentActionDisplay events={agentState.events} />
-            </div>
-          </div>
-        )}
+
 
         <div className="p-4 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h3>
@@ -279,21 +269,9 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               })
             )}
 
-            {isLoading && (
+            {(isLoading || agentState.isActive) && (
               <div className="flex justify-center">
-                {chatHook.progress ? (
-                  <ThinkingAnimation progress={chatHook.progress} />
-                ) : (
-                  <div className="flex items-center gap-2 bg-white rounded-lg px-4 py-3 shadow-md border">
-                    <Bot className="h-5 w-5 text-blue-600" />
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <span className="text-sm text-gray-600">Processing...</span>
-                  </div>
-                )}
+                <AgentActionDisplay events={agentState.events} isActive={agentState.isActive} />
               </div>
             )}
             <div ref={messagesEndRef} />

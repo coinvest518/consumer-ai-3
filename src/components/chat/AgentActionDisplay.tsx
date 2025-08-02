@@ -4,16 +4,37 @@ import { AgentEvent } from '@/lib/agentCallbacks';
 
 interface AgentActionDisplayProps {
   events: AgentEvent[];
+  isActive?: boolean;
 }
 
-export default function AgentActionDisplay({ events }: AgentActionDisplayProps) {
-  if (events.length === 0) return null;
+export default function AgentActionDisplay({ events, isActive }: AgentActionDisplayProps) {
+  if (events.length === 0 && !isActive) return null;
+  
+  // Show loading state when agent is active but no events yet
+  if (events.length === 0 && isActive) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 shadow-sm">
+        <div className="text-xs font-medium text-blue-600 mb-2 flex items-center">
+          <Brain className="h-3 w-3 mr-1 animate-pulse" />
+          AI Working...
+        </div>
+        <div className="flex items-center gap-2 py-1.5 px-2 bg-white rounded-md shadow-sm border border-blue-100">
+          <div className="flex gap-1">
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+          <span className="text-xs text-gray-600">Processing your request...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 max-h-40 overflow-y-auto shadow-sm">
       <div className="text-xs font-medium text-blue-600 mb-2 flex items-center">
         <Brain className="h-3 w-3 mr-1" />
-        AI Working... (Real-time Activity)
+AI Working...
       </div>
       <div className="space-y-2">
         {events.map((event, index) => (

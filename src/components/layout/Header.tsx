@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Calendar, ShoppingCart } from "lucide-react";
 import CryptoPaymentForm from "../wallet/CryptoPaymentForm";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
@@ -50,57 +50,110 @@ export default function Header() {
 
   return (
     <header className="border-b">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="text-xl font-bold text-primary">
           ConsumerAI
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/chat" className="text-gray-600 hover:text-primary">Chat</Link>
+          <Link to="/chat" className="text-gray-600 hover:text-primary transition-colors">Chat</Link>
           <button 
             onClick={() => scrollToSection('features')} 
-            className="text-gray-600 hover:text-primary"
+            className="text-gray-600 hover:text-primary transition-colors"
           >
             Features
           </button>
-          <Link to="/pricing" className="text-gray-600 hover:text-primary">Pricing</Link>
-          <Link to="/credit-builder" className="text-gray-600 hover:text-primary">Credit Builder</Link>
+          <Link to="/pricing" className="text-gray-600 hover:text-primary transition-colors">Pricing</Link>
+          <Link to="/credit-builder" className="text-gray-600 hover:text-primary transition-colors">Credit Builder</Link>
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {/* Mobile Action Buttons */}
+          <div className="flex sm:hidden items-center gap-1">
+            <a href="https://cal.com/bookme-daniel" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="sm" className="px-2">
+                <Calendar className="h-4 w-4" />
+              </Button>
+            </a>
+            <a href="https://buymeacoffee.com/coinvest" target="_blank" rel="noopener noreferrer">
+              <Button size="sm" className="px-2 bg-gradient-to-r from-green-600 to-emerald-600">
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+            </a>
+          </div>
+          
+          {/* Desktop Action Buttons */}
+          <a 
+            href="https://cal.com/bookme-daniel" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hidden sm:flex"
+          >
+            <Button variant="outline" size="sm" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all">
+              <Calendar className="h-4 w-4" />
+              Book Consultation
+            </Button>
+          </a>
+          
+          <a 
+            href="https://buymeacoffee.com/coinvest" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hidden sm:flex"
+          >
+            <Button size="sm" className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all">
+              <ShoppingCart className="h-4 w-4" />
+              Buy Credit Repair
+            </Button>
+          </a>
           {isConnected ? (
             <>
-              <Button variant="outline" onClick={() => setModalOpen(true)}>Buy Credits</Button>
-              <Button variant="secondary" onClick={() => disconnect()}>
+              <Button variant="outline" size="sm" onClick={() => setModalOpen(true)}>Buy Credits</Button>
+              <Button variant="secondary" size="sm" onClick={() => disconnect()}>
                 {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Disconnect"}
               </Button>
             </>
           ) : (
-            <Button variant="outline" onClick={handleConnect}>Connect Wallet</Button>
+            <Button variant="outline" size="sm" onClick={handleConnect}>Connect Wallet</Button>
           )}
 
-          {user ? (
-            <>
-              <Link to="/dashboard">
-                <Button variant="outline">Dashboard</Button>
-              </Link>
+          <div className="hidden sm:flex items-center gap-2">
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="outline" size="sm">Dashboard</Button>
+                </Link>
+                <Link to="/chat">
+                  <Button size="sm">New Chat</Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">Login</Button>
+                </Link>
+                <Link to="/register">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </>
+            )}
+          </div>
+          
+          {/* Mobile Auth Buttons */}
+          <div className="flex sm:hidden items-center gap-1">
+            {user ? (
               <Link to="/chat">
-                <Button>New Chat</Button>
+                <Button size="sm">Chat</Button>
               </Link>
-              <Button variant="ghost" onClick={signOut}>
-                Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">
-                <Button variant="ghost">Login</Button>
-              </Link>
+            ) : (
               <Link to="/register">
-                <Button>Sign Up</Button>
+                <Button size="sm">Sign Up</Button>
               </Link>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
       {/* Modal Overlay */}

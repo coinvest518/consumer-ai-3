@@ -5,12 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import type { ChatMessage } from "@/types/api";
 import { AgentEvent } from "@/lib/agentCallbacks";
 
-// Progress type for agent/step UI
-export interface ChatProgress {
-  steps: string[];
-  current: number;
-}
-
 // Agent state for tracking agent actions
 export interface AgentState {
   isActive: boolean;
@@ -36,7 +30,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [progress, setProgress] = useState<ChatProgress | null>(null);
+
   const [agentState, setAgentState] = useState<AgentState>({
     isActive: false,
     events: []
@@ -199,8 +193,7 @@ export function useChat() {
     error,
     sendMessage,
     loadChatById,
-    progress,
-    setProgress,
+
     agentState,
     shouldSpeakAI,
     setShouldSpeakAI,

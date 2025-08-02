@@ -1,34 +1,4 @@
 import { useState, useEffect, useContext, createContext } from "react";
-import { io, Socket } from "socket.io-client";
-// Simple Socket.IO hook for agent steps
-
-import socket from "@/lib/socket";
-function useAgentSteps(sessionId: string) {
-  const [steps, setSteps] = useState<any[]>([]);
-  const [isThinking, setIsThinking] = useState(false);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    socket.emit("join", sessionId);
-    socket.on("agent-thinking-start", () => {
-      setIsThinking(true);
-      setSteps([]);
-    });
-    socket.on("agent-step", (step) => {
-      setSteps((prev) => [...prev, step]);
-    });
-    socket.on("agent-thinking-complete", () => setIsThinking(false));
-    socket.on("agent-thinking-error", () => setIsThinking(false));
-    return () => {
-      socket.off("agent-thinking-start");
-      socket.off("agent-step");
-      socket.off("agent-thinking-complete");
-      socket.off("agent-thinking-error");
-    };
-    // eslint-disable-next-line
-  }, [sessionId]);
-  return { steps, isThinking };
-}
 import { cn } from "@/lib/utils";
 import { FormattedMessage } from "./FormattedMessage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,10 +17,7 @@ interface ChatMessageProps {
 export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps) {
   const { muted } = useContext(AIVoiceMuteContext);
   const isUser = message.role === 'user';
-  const [showTrace, setShowTrace] = useState(false);
-  // Live agent steps (only for AI messages)
-  // Use a static session key if message.sessionId does not exist
-  const { steps, isThinking } = !isUser ? useAgentSteps("chat-session") : { steps: [], isThinking: false };
+
 
   // Safety check for message structure
   if (!message || !message.content) {
@@ -92,38 +59,7 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
         "max-w-[90vw] sm:max-w-[80%] space-y-1",
         isUser ? "items-end" : "items-start"
       )}>
-        {/* Live Agent Steps (for AI messages) */}
-        {!isUser && (isThinking || steps.length > 0) && (
-          <div className="mb-2">
-            <button
-              onClick={() => setShowTrace(!showTrace)}
-              className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <span>Agent Process</span>
-              {isThinking && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse ml-1"></div>
-              )}
-            </button>
-            {showTrace && (
-              <div className="mt-2 space-y-1 border border-gray-200 rounded-lg p-2 bg-gray-50 text-xs">
-                {steps.map((step, index) => (
-                  <div key={step.id || index} className="flex items-start gap-2 p-2 bg-white rounded border">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900">{step.title}</div>
-                      <div className="text-gray-600">{step.description}</div>
-                      <div className="text-gray-400">{step.timestamp}</div>
-                    </div>
-                  </div>
-                ))}
-                {isThinking && (
-                  <div className="flex items-center gap-2 p-2 border border-dashed border-gray-300 rounded">
-                    <span className="text-gray-500">Agent is thinking...</span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+
         {/* Message Bubble */}
         <div className={cn(
           "relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm border text-sm sm:text-base",
