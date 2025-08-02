@@ -137,7 +137,6 @@ export default function EnhancedDashboard() {
     isLoading: chatLoading,
     error: chatError,
     loadChatById,
-    progress,
     agentState,
   } = useChat();
   const [loading, setLoading] = useState(false);
