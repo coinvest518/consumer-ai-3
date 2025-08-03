@@ -57,20 +57,20 @@ const Chat = () => {
 
       {/* Main header and content */}
       <header className="w-full bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               onClick={handleDashboardClick}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base p-2 sm:p-3 touch-manipulation"
             >
-              ← Back to Dashboard
+              ← <span className="hidden sm:inline">Back to Dashboard</span><span className="sm:hidden">Back</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="h-[calc(100vh-80px)]">
+      <main className="h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] mobile-chat-container">
         <ChatInterface 
           messages={messages}
           onSendMessage={sendMessage}

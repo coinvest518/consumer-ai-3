@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain } from "lucide-react";
+import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
@@ -29,6 +29,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -135,12 +136,34 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-80px)] bg-white">
-      <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col">
+    <div className="flex h-[calc(100vh-80px)] sm:h-[calc(100vh-80px)] bg-white relative mobile-chat-container">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "bg-gray-50 border-r border-gray-200 flex flex-col transition-transform duration-300 z-50",
+        "fixed lg:relative inset-y-0 left-0",
+        "w-80 lg:w-80",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-blue-600" />
-            <span className="font-semibold text-gray-900">AI Tools</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="h-6 w-6 text-blue-600" />
+              <span className="font-semibold text-gray-900">AI Tools</span>
+            </div>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-1 hover:bg-gray-200 rounded"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
@@ -151,7 +174,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
           />
         </div>
 
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Available Tools</h3>
           <div className="space-y-2">
             {defaultTools.map((tool) => {
@@ -162,18 +185,18 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                   key={tool.id}
                   onClick={() => handleToolSelect(tool.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors",
+                    "w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg text-left transition-colors touch-manipulation",
                     isSelected
                       ? "bg-blue-100 text-blue-700 border border-blue-200"
-                      : "hover:bg-gray-100 text-gray-700"
+                      : "hover:bg-gray-100 active:bg-gray-200 text-gray-700"
                   )}
                 >
                   <Icon className={cn(
-                    "h-5 w-5 flex-shrink-0",
+                    "h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0",
                     isSelected ? "text-blue-600" : "text-gray-500"
                   )} />
-                  <div>
-                    <div className="font-medium text-sm">{tool.name}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm truncate">{tool.name}</div>
                     <div className="text-xs text-gray-500 line-clamp-2">{tool.description}</div>
                   </div>
                 </button>
@@ -184,24 +207,33 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
 
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-3 sm:p-4 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h3>
           <div className="space-y-2">
             <button 
-              onClick={() => setInputValue("What are my rights with debt collectors?")}
-              className="w-full text-left p-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+              onClick={() => {
+                setInputValue("What are my rights with debt collectors?");
+                setIsSidebarOpen(false);
+              }}
+              className="w-full text-left p-2.5 sm:p-2 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 active:bg-blue-200 transition-colors touch-manipulation"
             >
               Debt Collection Rights
             </button>
             <button 
-              onClick={() => setInputValue("How do I dispute errors on my credit report?")}
-              className="w-full text-left p-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+              onClick={() => {
+                setInputValue("How do I dispute errors on my credit report?");
+                setIsSidebarOpen(false);
+              }}
+              className="w-full text-left p-2.5 sm:p-2 text-xs bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 active:bg-purple-200 transition-colors touch-manipulation"
             >
               Credit Report Disputes
             </button>
             <button 
-              onClick={() => setInputValue("What consumer protections do I have?")}
-              className="w-full text-left p-2 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+              onClick={() => {
+                setInputValue("What consumer protections do I have?");
+                setIsSidebarOpen(false);
+              }}
+              className="w-full text-left p-2.5 sm:p-2 text-xs bg-green-50 text-green-700 rounded-lg hover:bg-green-100 active:bg-green-200 transition-colors touch-manipulation"
             >
               Consumer Protection
             </button>
@@ -211,35 +243,43 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
       <div className="flex-1 flex flex-col bg-white">
         <div className="flex items-center gap-3 p-4 border-b bg-white sticky top-0 z-10">
-          <div className="flex items-center gap-2">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 flex-1">
             <div className="relative">
-              <Bot className="h-8 w-8 text-blue-600" />
-              <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
+              <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+              <div className="absolute -top-1 -right-1 h-2 w-2 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">ConsumerAI Assistant</h3>
-              <p className="text-xs text-gray-500">Online • Ready to help</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">ConsumerAI Assistant</h3>
+              <p className="text-xs text-gray-500 hidden sm:block">Online • Ready to help</p>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {selectedAgent && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                <Bot className="h-4 w-4" />
-                <span>{selectedAgent} agent active</span>
+              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs sm:text-sm">
+                <Bot className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">{selectedAgent} agent active</span>
+                <span className="sm:hidden">Agent</span>
                 <button onClick={() => setSelectedAgent(null)} className="text-blue-500 hover:text-blue-700">
                   <X className="h-3 w-3" />
                 </button>
               </div>
             )}
-            <div className="flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1">
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span className="text-xs text-gray-600">AI-Powered</span>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="space-y-4 p-4">
+        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white mobile-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="space-y-4 p-2 sm:p-4">
             {error && (
               <div className="flex justify-center">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg max-w-md">
@@ -278,16 +318,17 @@ export default function ChatInterface(props: ChatInterfaceProps) {
           </div>
         </div>
 
-        <div className="p-4 bg-white border-t">
-          <form onSubmit={handleSubmit} className="flex gap-3">
+        <div className="p-3 sm:p-4 bg-white border-t safe-area-bottom">
+          <form onSubmit={handleSubmit} className="flex gap-2 sm:gap-3">
             <div className="flex-1 relative">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={selectedAgent ? `Ask ${selectedAgent} agent...` : "Type your message..."}
                 className={cn(
-                  "h-12 text-base rounded-xl border-2 transition-all duration-200 pr-20",
-                  "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                  "h-10 sm:h-12 text-sm sm:text-base rounded-xl border-2 transition-all duration-200 mobile-input",
+                  "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
+                  "pr-16 sm:pr-20"
                 )}
                 disabled={isLoading}
               />
@@ -295,38 +336,38 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 type="button"
                 aria-label="Speak your message"
                 onClick={handleVoiceInput}
-                className="absolute right-12 top-1/2 -translate-y-1/2 bg-blue-100 rounded-full p-2 hover:bg-blue-200"
+                className="absolute right-10 sm:right-12 top-1/2 -translate-y-1/2 bg-blue-100 rounded-full p-1.5 sm:p-2 hover:bg-blue-200 touch-manipulation"
                 disabled={isListening}
               >
                 <Mic className={cn(
-                  "h-4 w-4 text-blue-600",
+                  "h-3 w-3 sm:h-4 sm:w-4 text-blue-600",
                   isListening && "animate-pulse"
                 )} />
               </button>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <User className="h-4 w-4 text-gray-400" />
+              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
+                <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
               </div>
             </div>
             <Button 
               type="submit" 
               disabled={isLoading || !inputValue.trim()}
               className={cn(
-                "h-12 px-6 rounded-xl font-medium transition-all duration-200",
+                "h-10 sm:h-12 px-3 sm:px-6 rounded-xl font-medium transition-all duration-200 touch-manipulation",
                 "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
-                "shadow-lg hover:shadow-xl"
+                "shadow-lg hover:shadow-xl min-w-[44px]"
               )}
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               )}
             </Button>
           </form>
           
           {isListening && (
-            <div className="mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
+            <div className="mt-2 sm:mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
               <Mic className="h-4 w-4 animate-pulse" /> Listening...
             </div>
           )}
