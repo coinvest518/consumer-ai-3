@@ -3,6 +3,7 @@ import { creditBuilders as baseCreditBuilders, CreditBuilder } from "@/types/Cre
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Building, Shield, TrendingUp, DollarSign, CreditCard, Verified } from 'lucide-react';
+import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
 
 export default function CreditBuilderPage() {
   const { user } = useAuth();
@@ -64,6 +65,7 @@ export default function CreditBuilderPage() {
           </div>
         ))}
       </div>
+      <ElevenLabsChatbot />
     </div>
   );
 }

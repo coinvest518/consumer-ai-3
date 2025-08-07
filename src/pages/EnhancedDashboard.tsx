@@ -15,7 +15,7 @@ import { api } from "@/lib/api-client";
 
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
-import TavusChatbot from "../components/TavusChatbot";
+import ElevenLabsChatbot from "../components/ElevenLabsChatbot";
 import { useChat } from "../hooks/useChat";
 import { useToast } from "@/hooks/use-toast";
 
@@ -413,7 +413,7 @@ export default function EnhancedDashboard() {
           </div>
         </div>
         {/* Floating Tavus Customer Support Chatbot */}
-        <TavusChatbot />
+        <ElevenLabsChatbot />
       </div>
     </motion.div>
   );

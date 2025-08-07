@@ -1,5 +1,6 @@
 import PricingSection from '@/components/home/PricingSection';
 import { motion } from 'framer-motion';
+import ElevenLabsChatbot from '@/components/ElevenLabsChatbot';
 
 export default function Pricing() {
   return (
@@ -9,6 +10,7 @@ export default function Pricing() {
       exit={{ opacity: 0 }}
     >
       <PricingSection />
+      <ElevenLabsChatbot />
     </motion.div>
   );
 }

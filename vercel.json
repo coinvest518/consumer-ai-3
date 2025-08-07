@@ -12,7 +12,7 @@
   ],
   "routes": [
     
-    { "src": "/api/conversations/?", "dest": "/api/conversations.ts" },
+
     { "src": "/api/credit-builder/?", "dest": "/api/credit-builder.ts" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
     

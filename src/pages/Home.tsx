@@ -6,7 +6,7 @@ import StatsSection from '@/components/home/StatsSection';
 import FAQSection from '@/components/home/FAQSection';
 import PricingSection from '@/components/home/PricingSection';
 import CTASection from '@/components/home/CTASection';
-import TavusChatbot from '@/components/TavusChatbot';
+import ElevenLabsChatbot from '@/components/ElevenLabsChatbot';
 
 export default function Home() {
   return (
@@ -18,7 +18,7 @@ export default function Home() {
       <FAQSection />
       <PricingSection />
       <CTASection />
-      <TavusChatbot />
+      <ElevenLabsChatbot />
     </main>
   );
 }

@@ -7,6 +7,7 @@ import ChatInterface from "@/components/chat/ChatInterface";
 import { useChat } from "@/hooks/useChat";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
 
 
 
@@ -79,6 +80,8 @@ const Chat = () => {
           initialTemplate={initialTemplate}
         />
       </main>
+      
+      <ElevenLabsChatbot />
     </motion.div>
   );
 }

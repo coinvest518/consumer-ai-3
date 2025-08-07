@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import TavusChatbot from '@/components/TavusChatbot';
+import ElevenLabsChatbot from '@/components/ElevenLabsChatbot';
 
 const Landing = () => {
   const scrollToSection = (id: string) => {
@@ -50,7 +50,7 @@ const Landing = () => {
       </section>
       
       {/* Tavus AI Customer Support */}
-      <TavusChatbot />
+      <ElevenLabsChatbot />
     </div>
   );
 };
