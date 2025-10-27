@@ -98,6 +98,17 @@ const Footer = () => {
           </a>
         </div>
 
+        {/* Support Section */}
+        <div className="flex justify-center mt-6">
+          <a href="https://www.buymeacoffee.com/coinvest" target="_blank" rel="noopener noreferrer" className="transition-transform hover:scale-105">
+            <img 
+              src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=coinvest&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff" 
+              alt="Buy me a coffee"
+              className="h-10 w-auto"
+            />
+          </a>
+        </div>
+
         {/* Copyright and Disclaimer */}
         <div className="mt-8 border-t border-gray-200 pt-8">
           <p className="text-center text-base text-gray-400">
