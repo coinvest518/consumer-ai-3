@@ -17,7 +17,7 @@ declare global {
 
 export default function ElevenLabsChatbot({ className = '' }: ElevenLabsChatbotProps) {
   const [open, setOpen] = useState(false); // persistent toggle by click
-  const [hover, setHover] = useState(false); // transient on hover
+  const [hover, setHover] = useState(false); // transient git add on hover
   // Load ElevenLabs script
   useEffect(() => {
     const script = document.createElement('script');
