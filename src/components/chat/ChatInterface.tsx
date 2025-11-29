@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft } from "lucide-react";
+import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
@@ -11,6 +11,8 @@ import { useChat } from "@/hooks/useChat";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import AgentActionDisplay from "./AgentActionDisplay";
+import { CreditReportUpload, CreditReportAnalysis } from "./CreditReportUpload";
+import { CreditReportResults } from "./CreditReportResults";
 
 interface ChatInterfaceProps {
   messages?: ChatMessageType[];
@@ -30,6 +32,9 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showCreditReportUpload, setShowCreditReportUpload] = useState(false);
+  const [creditReportAnalysis, setCreditReportAnalysis] = useState<CreditReportAnalysis | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -96,6 +101,26 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const handleToolSelect = (toolId: string) => {
     setSelectedTool(toolId === selectedTool ? null : toolId);
     setSelectedAgent(toolId === selectedTool ? null : toolId);
+
+    // Show credit report upload when report tool is selected
+    if (toolId === 'report' && toolId !== selectedTool) {
+      setShowCreditReportUpload(true);
+    } else {
+      setShowCreditReportUpload(false);
+    }
+  };
+
+  const handleCreditReportAnalysis = (analysis: CreditReportAnalysis) => {
+    setCreditReportAnalysis(analysis);
+    setShowCreditReportUpload(false);
+  };
+
+  const handleUploadStart = () => {
+    setIsUploading(true);
+  };
+
+  const handleUploadComplete = () => {
+    setIsUploading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -314,6 +339,25 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 <AgentActionDisplay events={agentState.events} isActive={agentState.isActive} />
               </div>
             )}
+
+            {/* Credit Report Upload */}
+            {showCreditReportUpload && (
+              <div className="max-w-2xl mx-auto">
+                <CreditReportUpload
+                  onAnalysisComplete={handleCreditReportAnalysis}
+                  onUploadStart={handleUploadStart}
+                  onUploadComplete={handleUploadComplete}
+                />
+              </div>
+            )}
+
+            {/* Credit Report Results */}
+            {creditReportAnalysis && (
+              <div className="max-w-4xl mx-auto">
+                <CreditReportResults analysis={creditReportAnalysis} />
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -330,7 +374,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
                   "pr-16 sm:pr-20"
                 )}
-                disabled={isLoading}
+                disabled={isLoading || isUploading}
               />
               <button
                 type="button"
@@ -350,7 +394,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
             </div>
             <Button 
               type="submit" 
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || !inputValue.trim() || isUploading}
               className={cn(
                 "h-10 sm:h-12 px-3 sm:px-6 rounded-xl font-medium transition-all duration-200 touch-manipulation",
                 "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700",
