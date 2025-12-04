@@ -126,7 +126,7 @@ export default function PricingSection() {
 
           {/* Starter Plan */}
           <motion.div 
-            className="border border-blue-400 rounded-lg shadow-md divide-y divide-gray-200 bg-white scale-105"
+            className="border border-blue-400 rounded-lg shadow-md divide-y divide-gray-200 bg-white"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -168,7 +168,7 @@ export default function PricingSection() {
 
           {/* Pro Plan */}
           <motion.div 
-            className="border border-primary rounded-lg shadow-md divide-y divide-gray-200 bg-white"
+            className="border-2 border-primary rounded-lg shadow-lg divide-y divide-gray-200 bg-white scale-105"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -238,7 +238,7 @@ export default function PricingSection() {
 
           {/* Power Plan */}
           <motion.div 
-            className="border-2 border-yellow-400 rounded-lg shadow-lg divide-y divide-gray-200 bg-white scale-105"
+            className="border-2 border-yellow-400 rounded-lg shadow-lg divide-y divide-gray-200 bg-white"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

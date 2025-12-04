@@ -122,12 +122,11 @@ export default function HowItWorksSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className="relative mx-auto w-full rounded-lg shadow-lg overflow-hidden">
-              <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-lg">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  Legal assistance imagery placeholder
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-transparent"></div>
+              <img 
+                src="/credit.gif" 
+                alt="ConsumerAI legal assistance preview" 
+                className="w-full h-auto rounded-lg"
+              />
             </div>
           </motion.div>
         </div>

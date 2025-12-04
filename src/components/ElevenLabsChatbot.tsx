@@ -16,86 +16,153 @@ declare global {
 }
 
 export default function ElevenLabsChatbot({ className = '' }: ElevenLabsChatbotProps) {
-  const [open, setOpen] = useState(false); // persistent toggle by click
-  const [hover, setHover] = useState(false); // transient git add on hover
-  // Load ElevenLabs script
+  const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(true);
+  
+  // Load ElevenLabs script only once
   useEffect(() => {
+    const existingScript = document.querySelector('script[src*="elevenlabs/convai-widget-embed"]');
+    if (existingScript) {
+      return;
+    }
+    
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
     script.async = true;
     script.type = 'text/javascript';
     
     document.head.appendChild(script);
-    
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
   }, []);
+
+  // Hide tooltip after 5 seconds or when widget is opened
+  useEffect(() => {
+    if (open) {
+      setShowTooltip(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowTooltip(false), 8000);
+    return () => clearTimeout(timer);
+  }, [open]);
 
   const visible = open || hover;
 
   return (
     <div
       className={className}
-      // Wrapper sits fixed in the corner but doesn't block clicks when closed
       style={{
         position: 'fixed',
         right: 20,
         bottom: 20,
         zIndex: 9999,
-        // When collapsed we allow pointer events to pass-through so underlying chat buttons remain clickable
         pointerEvents: visible ? 'auto' : 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       aria-hidden={visible ? 'false' : 'true'}
     >
-      {/* Small toggle button is always interactive (pointerEvents auto) so user can open the widget without obstruction */}
+      {/* Tooltip / Label */}
+      {!visible && (
+        <div
+          style={{
+            pointerEvents: 'auto',
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            animation: showTooltip ? 'pulse 2s ease-in-out infinite' : 'none',
+          }}
+        >
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: '#fff',
+              padding: '8px 14px',
+              borderRadius: 20,
+              fontSize: 13,
+              fontWeight: 500,
+              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span>🎙️</span>
+            <span>Chat with AI Assistant</span>
+          </div>
+          {/* Arrow pointing to button */}
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderTop: '6px solid transparent',
+              borderBottom: '6px solid transparent',
+              borderLeft: '8px solid #764ba2',
+            }}
+          />
+        </div>
+      )}
+
+      {/* Toggle button */}
       <button
         onClick={() => setOpen((s) => !s)}
         aria-pressed={open}
         aria-label={open ? 'Close voice assistant' : 'Open voice assistant'}
-        title={open ? 'Close voice assistant' : 'Open voice assistant'}
+        title={open ? 'Close voice assistant' : 'Chat with AI Assistant'}
         style={{
           pointerEvents: 'auto',
-          width: 44,
-          height: 44,
-          borderRadius: 22,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
           border: 'none',
-          background: visible ? '#0b84ff' : 'rgba(11,132,255,0.12)',
-          color: visible ? '#fff' : '#0b84ff',
+          background: visible 
+            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: '#fff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 6px 18px rgba(12,24,40,0.15)',
-          transition: 'all 180ms ease',
+          boxShadow: visible 
+            ? '0 8px 25px rgba(102, 126, 234, 0.5)' 
+            : '0 6px 20px rgba(102, 126, 234, 0.4)',
+          transition: 'all 200ms ease',
           cursor: 'pointer',
+          transform: visible ? 'scale(1.05)' : 'scale(1)',
         }}
       >
-        {/* Simple microphone/sound icon */}
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 14C13.6569 14 15 12.6569 15 11V5C15 3.34315 13.6569 2 12 2C10.3431 2 9 3.34315 9 5V11C9 12.6569 10.3431 14 12 14Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M19 11C19 14.3137 16.3137 17 13 17H11C7.68629 17 5 14.3137 5 11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 17V21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        {visible ? (
+          /* X close icon */
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        ) : (
+          /* Microphone icon */
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14C13.6569 14 15 12.6569 15 11V5C15 3.34315 13.6569 2 12 2C10.3431 2 9 3.34315 9 5V11C9 12.6569 10.3431 14 12 14Z" fill="currentColor"/>
+            <path d="M19 11C19 14.866 15.866 18 12 18M12 18C8.13401 18 5 14.866 5 11M12 18V22M8 22H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
       </button>
 
-      {/* The actual ElevenLabs element is only rendered (visible) when open/hover.
-          We still mount it so the script is loaded, but we hide it visually when not needed.
-      */}
+      {/* ElevenLabs widget container */}
       <div
         style={{
-          marginTop: 10,
-          width: visible ? 360 : 0,
-          height: visible ? 520 : 0,
+          position: 'absolute',
+          bottom: 70,
+          right: 0,
+          width: visible ? 380 : 0,
+          height: visible ? 550 : 0,
           overflow: 'hidden',
-          transition: 'width 180ms ease, height 180ms ease, opacity 180ms ease',
+          transition: 'width 200ms ease, height 200ms ease, opacity 200ms ease',
           opacity: visible ? 1 : 0,
           pointerEvents: visible ? 'auto' : 'none',
           background: 'transparent',
-          borderRadius: 12,
+          borderRadius: 16,
+          boxShadow: visible ? '0 10px 40px rgba(0,0,0,0.2)' : 'none',
         }}
       >
         {visible && (
@@ -105,6 +172,14 @@ export default function ElevenLabsChatbot({ className = '' }: ElevenLabsChatbotP
           />
         )}
       </div>
+
+      {/* Pulse animation keyframes */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: translateX(0); }
+          50% { opacity: 0.8; transform: translateX(-3px); }
+        }
+      `}</style>
     </div>
   );
 }

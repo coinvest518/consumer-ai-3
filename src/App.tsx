@@ -78,14 +78,14 @@ const networks = [
 // Create QueryClient instance
 const queryClient = new QueryClient();
 
-// Create Wagmi Adapter
+// Create Wagmi Adapter with reconnect disabled
 const wagmiAdapter = new WagmiAdapter({
   networks: [...networks],
-  projectId
+  projectId,
+  ssr: true, // Prevents auto-reconnect on page load
 });
 
-// Create modal
-
+// Create modal - configured to NOT auto-connect on page load
 createAppKit({
   adapters: [wagmiAdapter],
   networks,
@@ -93,7 +93,11 @@ createAppKit({
   metadata,
   features: {
     analytics: true
-  }
+  },
+  // Disable automatic reconnection on page load
+  enableReconnect: false,
+  // Disable wallet guide prompt
+  enableWalletGuide: false,
 });
 
 inject();
@@ -102,7 +106,7 @@ function App() {
   const baseUrl = getBaseUrl();
   return (
     <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={wagmiAdapter.wagmiConfig}>
+      <WagmiProvider config={wagmiAdapter.wagmiConfig} reconnectOnMount={false}>
         <BrowserRouter basename={baseUrl}>
           <AuthProvider>
             <Layout>
