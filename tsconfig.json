@@ -20,7 +20,7 @@
       "@shared/*": ["./shared/*"]
     },
     "types": ["vite/client", "react"],
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src", "shared", "api"],
   "references": [{ "path": "./tsconfig.node.json" }]
