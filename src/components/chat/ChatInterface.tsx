@@ -422,23 +422,23 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 className={cn(
                   "h-10 sm:h-12 text-sm sm:text-base rounded-xl border-2 transition-all duration-200 mobile-input",
                   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20",
-                  "pr-16 sm:pr-20"
+                  "pr-24 sm:pr-28"
                 )}
                 disabled={isLoading || isUploading}
               />
-              <button
-                type="button"
-                aria-label="Speak your message"
-                onClick={handleVoiceInput}
-                className="absolute right-10 sm:right-12 top-1/2 -translate-y-1/2 bg-blue-100 rounded-full p-1.5 sm:p-2 hover:bg-blue-200 touch-manipulation"
-                disabled={isListening}
-              >
-                <Mic className={cn(
-                  "h-3 w-3 sm:h-4 sm:w-4 text-blue-600",
-                  isListening && "animate-pulse"
-                )} />
-              </button>
-              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex gap-1">
+              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Speak your message"
+                  onClick={handleVoiceInput}
+                  className="bg-blue-100 rounded-full p-1.5 sm:p-2 hover:bg-blue-200 touch-manipulation"
+                  disabled={isListening}
+                >
+                  <Mic className={cn(
+                    "h-3 w-3 sm:h-4 sm:w-4 text-blue-600",
+                    isListening && "animate-pulse"
+                  )} />
+                </button>
                 <button
                   type="button"
                   aria-label="Upload credit report"
@@ -448,9 +448,6 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 >
                   <Upload className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
                 </button>
-                <div className="text-gray-400">
-                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
               </div>
             </div>
             <Button 
