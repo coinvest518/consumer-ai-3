@@ -103,3 +103,20 @@
 .animate-pulse-once {
   animation: pulse-once 1s ease-in-out;
 }
+
+/* Mobile chat scrolling fixes */
+.mobile-chat-container {
+  height: calc(100vh - 80px);
+  overflow: hidden;
+}
+
+.mobile-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-input {
+  -webkit-appearance: none;
+  border-radius: 0.75rem;
+}

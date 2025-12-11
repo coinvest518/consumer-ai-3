@@ -124,7 +124,7 @@ export default function HowItWorksSection() {
             <div className="relative mx-auto w-full rounded-lg shadow-lg overflow-hidden">
               <img 
                 src="/credit.gif" 
-                alt="ConsumerAI legal assistance preview" 
+                alt="Animated demonstration of ConsumerAI analyzing credit reports and providing legal assistance" 
                 className="w-full h-auto rounded-lg"
               />
             </div>

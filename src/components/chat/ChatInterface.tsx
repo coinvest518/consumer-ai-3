@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft, Upload } from "lucide-react";
+import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft, Upload, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
@@ -29,7 +29,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -89,7 +89,15 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Small delay to ensure DOM has updated
+    setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTo({
+          top: messagesContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   useEffect(() => {
@@ -368,10 +376,18 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span className="text-xs text-gray-600">AI-Powered</span>
             </div>
+            <button
+              onClick={() => window.open('https://buymeacoffee.com/coinvest/extra', '_blank')}
+              className="hidden sm:flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+              title="Free Resources & Digital Products"
+            >
+              <Gift className="h-4 w-4" />
+              <span className="text-xs font-medium">Free Resources</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white mobile-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white mobile-scroll" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="space-y-4 p-2 sm:p-4">
             {error && (
               <div className="flex justify-center">
@@ -407,8 +423,6 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                 <AgentActionDisplay events={agentState.events} isActive={agentState.isActive} />
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
         </div>
 
