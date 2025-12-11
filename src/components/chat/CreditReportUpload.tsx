@@ -110,7 +110,7 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
     const filePath = `credit-reports/${user.id}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('user-files')
+      .from('users-file-storage')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
@@ -118,19 +118,19 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
 
     if (uploadError) throw uploadError;
 
-    // Track the upload in database
+    // Track the file upload
     const success = await trackFileUpload(
       user.id,
       filePath,
       file.name,
       file.size,
       file.type,
-      'user-files'
+      'users-file-storage'
     );
 
     if (!success) {
       // Clean up uploaded file if tracking failed
-      await supabase.storage.from('user-files').remove([filePath]);
+      await supabase.storage.from('users-file-storage').remove([filePath]);
       throw new Error('Failed to track file upload');
     }
 
@@ -140,38 +140,68 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
   const analyzeCreditReport = async (filePath: string): Promise<CreditReportAnalysis> => {
     if (!user?.id) throw new Error('User not authenticated');
 
-    // Call the backend API for analysis
-    const response = await api.sendMessage(
-      `Please analyze this credit report file: ${filePath}`,
-      `credit-analysis-${Date.now()}`,
-      user.id
-    );
+    try {
+      // Call the backend API for analysis
+      const response = await api.sendMessage(
+        `Please analyze this credit report file: ${filePath}. Extract all account information, identify any errors, inaccuracies, or violations of credit reporting laws, and provide specific recommendations for dispute letters.`,
+        `credit-analysis-${Date.now()}`,
+        user.id
+      );
 
-    // For now, return mock analysis - this should be replaced with actual backend response
-    return {
-      id: `analysis-${Date.now()}`,
-      fileName: selectedFile!.name,
-      fileSize: selectedFile!.size,
-      uploadDate: new Date().toISOString(),
-      analysis: {
-        errors: [
-          {
-            type: 'accuracy',
-            description: 'Late payment reported incorrectly',
-            severity: 'medium',
-            section: 'Payment History',
-            recommendation: 'Contact the credit bureau to dispute this error'
-          }
-        ],
-        summary: 'Your credit report shows good overall health with some minor inaccuracies that should be addressed.',
-        recommendations: [
-          'Dispute any inaccurate information with the credit bureaus',
-          'Monitor your credit report regularly',
-          'Consider credit counseling if needed'
-        ],
-        score: 720
-      }
-    };
+      // For now, return structured analysis based on the response
+      // This should be enhanced to parse the actual AI response
+      return {
+        id: `analysis-${Date.now()}`,
+        fileName: selectedFile!.name,
+        fileSize: selectedFile!.size,
+        uploadDate: new Date().toISOString(),
+        analysis: {
+          errors: [
+            {
+              type: 'accuracy',
+              description: 'Analysis in progress - AI is reviewing your credit report',
+              severity: 'low',
+              section: 'File Processing',
+              recommendation: 'Please wait while we analyze your report'
+            }
+          ],
+          summary: 'Your credit report is being analyzed by our AI system. This may take a moment.',
+          recommendations: [
+            'Review the analysis results carefully',
+            'Contact credit bureaus for any identified errors',
+            'Keep records of all correspondence'
+          ],
+          score: undefined // Will be determined by AI analysis
+        }
+      };
+    } catch (error) {
+      console.error('Analysis error:', error);
+      // Fallback to basic analysis
+      return {
+        id: `analysis-${Date.now()}`,
+        fileName: selectedFile!.name,
+        fileSize: selectedFile!.size,
+        uploadDate: new Date().toISOString(),
+        analysis: {
+          errors: [
+            {
+              type: 'other',
+              description: 'Unable to complete automated analysis',
+              severity: 'medium',
+              section: 'Analysis',
+              recommendation: 'Please describe any specific concerns you have about your credit report'
+            }
+          ],
+          summary: 'We were unable to complete the automated analysis. Please ask our AI assistant specific questions about your credit report.',
+          recommendations: [
+            'Ask the AI about specific items on your report',
+            'Inquire about dispute procedures',
+            'Request help drafting dispute letters'
+          ],
+          score: undefined
+        }
+      };
+    }
   };
 
   const handleUpload = async () => {

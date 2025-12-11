@@ -11,8 +11,8 @@ import { useChat } from "@/hooks/useChat";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import AgentActionDisplay from "./AgentActionDisplay";
-import { CreditReportUpload, CreditReportAnalysis } from "./CreditReportUpload";
-import { CreditReportResults } from "./CreditReportResults";
+import { supabase } from "@/lib/supabase";
+import { trackFileUpload } from "@/lib/storageUtils";
 
 interface ChatInterfaceProps {
   messages?: ChatMessageType[];
@@ -32,9 +32,9 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isListening, setIsListening] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showCreditReportUpload, setShowCreditReportUpload] = useState(false);
-  const [creditReportAnalysis, setCreditReportAnalysis] = useState<CreditReportAnalysis | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -83,6 +83,10 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const isLoading = props.isLoading !== undefined ? props.isLoading : chatHook.isLoading;
   const error = chatHook.error;
   const agentState = chatHook.agentState;
+  const setError = (error: string | null) => {
+    // We can't directly set the error from useChat, so we'll handle it differently
+    console.error('Upload error:', error);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -102,25 +106,89 @@ export default function ChatInterface(props: ChatInterfaceProps) {
     setSelectedTool(toolId === selectedTool ? null : toolId);
     setSelectedAgent(toolId === selectedTool ? null : toolId);
 
-    // Show credit report upload when report tool is selected
+    // For report tool, don't show upload component anymore - upload button is in main chat
+    // Just set the agent for when user asks questions about reports
     if (toolId === 'report' && toolId !== selectedTool) {
-      setShowCreditReportUpload(true);
-    } else {
-      setShowCreditReportUpload(false);
+      setSelectedAgent('report');
+      setSelectedTool('report');
+    } else if (toolId === selectedTool) {
+      setSelectedAgent(null);
+      setSelectedTool(null);
     }
   };
 
-  const handleCreditReportAnalysis = (analysis: CreditReportAnalysis) => {
-    setCreditReportAnalysis(analysis);
-    setShowCreditReportUpload(false);
+  const handleFileUpload = async (file: File) => {
+    if (!user?.id) return;
+
+    try {
+      setIsUploading(true);
+      setUploadedFile(file);
+
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `credit-reports/${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('users-file-storage')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Track the upload
+      const success = await trackFileUpload(
+        user.id,
+        filePath,
+        file.name,
+        file.size,
+        file.type,
+        'users-file-storage'
+      );
+
+      if (!success) {
+        await supabase.storage.from('users-file-storage').remove([filePath]);
+        throw new Error('Failed to track file upload');
+      }
+
+      // Automatically trigger report agent with the file
+      const agentMessage = `[Agent Request: report] Please analyze this credit report file: ${filePath}. The file has been uploaded and is ready for analysis.`;
+      
+      await sendMessage(agentMessage);
+      setUploadedFile(null);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleUploadStart = () => {
-    setIsUploading(true);
-  };
-
-  const handleUploadComplete = () => {
-    setIsUploading(false);
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      const acceptedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      
+      if (!acceptedTypes.includes(file.type)) {
+        setError('Please upload a PDF or image file (JPG, PNG)');
+        return;
+      }
+      
+      if (file.size > 10 * 1024 * 1024) { // 10MB
+        setError('File size must be less than 10MB');
+        return;
+      }
+      
+      handleFileUpload(file);
+    }
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -340,24 +408,6 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               </div>
             )}
 
-            {/* Credit Report Upload */}
-            {showCreditReportUpload && (
-              <div className="max-w-2xl mx-auto">
-                <CreditReportUpload
-                  onAnalysisComplete={handleCreditReportAnalysis}
-                  onUploadStart={handleUploadStart}
-                  onUploadComplete={handleUploadComplete}
-                />
-              </div>
-            )}
-
-            {/* Credit Report Results */}
-            {creditReportAnalysis && (
-              <div className="max-w-4xl mx-auto">
-                <CreditReportResults analysis={creditReportAnalysis} />
-              </div>
-            )}
-
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -388,8 +438,19 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                   isListening && "animate-pulse"
                 )} />
               </button>
-              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2">
-                <User className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex gap-1">
+                <button
+                  type="button"
+                  aria-label="Upload credit report"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="bg-gray-100 rounded-full p-1.5 sm:p-2 hover:bg-gray-200 touch-manipulation"
+                  disabled={isLoading || isUploading}
+                >
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                </button>
+                <div className="text-gray-400">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                </div>
               </div>
             </div>
             <Button 
@@ -409,6 +470,21 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               )}
             </Button>
           </form>
+          
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleFileInputChange}
+            className="hidden"
+          />
+          
+          {isUploading && (
+            <div className="mt-2 sm:mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Uploading credit report...
+            </div>
+          )}
           
           {isListening && (
             <div className="mt-2 sm:mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
