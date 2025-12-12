@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
+import { supabase } from '../src/lib/supabase';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 
@@ -31,7 +32,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Payment system not configured' });
     }
 
-    // Skip user validation for now - can be added back if needed
+    // Check if user exists in Supabase
+    const { data: user, error } = await supabase.from('users').select('id').eq('id', userId).single();
+    if (error || !user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity: 1 }],
