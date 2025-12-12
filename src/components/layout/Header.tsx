@@ -45,7 +45,7 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-6">
           <Link to="/chat" className="text-gray-600 hover:text-primary transition-colors">Chat</Link>
           <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Features</a>
-          <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">Pricing</a>
+          <Link to="/pricing" className="text-gray-600 hover:text-primary transition-colors">Pricing</Link>
           <Link to="/credit-builder" className="text-gray-600 hover:text-primary transition-colors">Credit Builder</Link>
           <a href="https://buymeacoffee.com/coinvest/extras" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary transition-colors">Free Products</a>
         </nav>
@@ -107,7 +107,7 @@ export default function Header() {
           <nav className="flex flex-col gap-3">
             <Link to="/chat" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Chat</Link>
             <a href="#features" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Features</a>
-            <a href="#pricing" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Pricing</a>
+            <Link to="/pricing" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
             <Link to="/credit-builder" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Credit Builder</Link>
             <a href="https://buymeacoffee.com/coinvest/extras" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Free Resources</a>
           </nav>

@@ -148,9 +148,37 @@ export default function PricingSection() {
               </p>
               <Button
                 className="mt-8 w-full bg-blue-500 text-white hover:bg-blue-600 border-blue-700"
-                onClick={() => navigate('/upgrade/starter')}
+                onClick={async () => {
+                  if (!user) {
+                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    const res = await fetch('/api/create-checkout-session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ plan: 'starter', userId: user.id })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      throw new Error(data.error || 'Failed to create checkout session');
+                    }
+                  } catch (error) {
+                    let message = 'Payment failed';
+                    if (error && typeof error === 'object' && 'message' in error) {
+                      message = (error as any).message;
+                    }
+                    toast({ title: 'Error', description: message, variant: 'destructive' });
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={isLoading}
               >
-                Upgrade to Starter
+                {isLoading ? 'Redirecting...' : 'Upgrade to Starter'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">

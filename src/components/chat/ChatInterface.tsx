@@ -377,7 +377,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               <span className="text-xs text-gray-600">AI-Powered</span>
             </div>
             <button
-              onClick={() => window.open('https://buymeacoffee.com/coinvest/extra', '_blank')}
+              onClick={() => window.open('https://buymeacoffee.com/coinvest/extras', '_blank')}
               className="hidden sm:flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
               title="Free Resources & Digital Products"
             >
