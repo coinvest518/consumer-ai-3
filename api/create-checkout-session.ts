@@ -1,6 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Stripe from 'stripe';
-import { supabase } from '../src/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+// Create a server-side Supabase client using server env vars
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables on server');
+  }
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 
@@ -33,9 +42,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Payment system not configured' });
     }
 
-    // Check if user exists in Supabase
-    const { data: user, error } = await supabase.from('users').select('id').eq('id', userId).single();
-    if (error || !user) {
+    // Check if user exists in Supabase (server-side client)
+    const supabase = getSupabaseClient();
+    const { data: user, error } = await supabase.from('users').select('id').eq('id', userId).maybeSingle();
+    if (error) {
+      console.error('Supabase query error:', error);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
