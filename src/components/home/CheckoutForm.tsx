@@ -1,19 +1,28 @@
 
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { useCallback } from 'react';
 
-// Make sure to call `loadStripe` outside of a component’s render to avoid
+// Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 // This is your test publishable API key.
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
 
 interface CheckoutFormProps {
   clientSecret: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-const CheckoutForm = ({ clientSecret }: CheckoutFormProps) => {
-  const options = { clientSecret };
+const CheckoutForm = ({ clientSecret, onSuccess, onCancel }: CheckoutFormProps) => {
+  const options = { 
+    clientSecret,
+    onComplete: () => {
+      // This is called when the checkout is successfully completed
+      if (onSuccess) {
+        onSuccess();
+      }
+    }
+  };
 
   return (
     <div id="checkout">

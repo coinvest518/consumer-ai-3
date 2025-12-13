@@ -59,6 +59,28 @@ export default function PricingSection() {
     }
   };
 
+  const handleCheckoutSuccess = () => {
+    setIsModalOpen(false);
+    setClientSecret(null);
+    toast({ 
+      title: 'Payment successful!', 
+      description: 'Your subscription has been activated. Welcome to the premium experience!',
+      variant: 'default' 
+    });
+    // Optionally redirect to dashboard or refresh user data
+    window.location.reload(); // Refresh to update user status
+  };
+
+  const handleCheckoutCancel = () => {
+    setIsModalOpen(false);
+    setClientSecret(null);
+    toast({ 
+      title: 'Payment cancelled', 
+      description: 'No charges were made. You can try again anytime.',
+      variant: 'default' 
+    });
+  };
+
   const freePlanFeatures = [
     "10 credits/month",
     "Basic AI model",
@@ -289,7 +311,13 @@ export default function PricingSection() {
           <DialogHeader>
             <DialogTitle>Complete Your Purchase</DialogTitle>
           </DialogHeader>
-          {clientSecret && <CheckoutForm clientSecret={clientSecret} />}
+          {clientSecret && (
+            <CheckoutForm 
+              clientSecret={clientSecret} 
+              onSuccess={handleCheckoutSuccess}
+              onCancel={handleCheckoutCancel}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </section>

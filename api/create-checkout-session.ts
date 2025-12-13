@@ -64,11 +64,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       ui_mode: 'embedded',
-      success_url: `${origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing`,
       client_reference_id: userId,
       metadata: { userId, plan },
-      return_url: `${origin}/return?session_id={CHECKOUT_SESSION_ID}`,
     });
     
     return res.status(200).json({ clientSecret: session.client_secret });
