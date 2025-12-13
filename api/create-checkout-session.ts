@@ -4,10 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 // Create a server-side Supabase client using server env vars
 function getSupabaseClient() {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnon = process.env.SUPABASE_ANON_KEY;
+  const supabaseKey = supabaseServiceKey || supabaseAnon;
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables on server');
   }
+  const keyType = supabaseServiceKey ? 'service_role' : (supabaseAnon ? 'anon' : 'none');
+  console.log('getSupabaseClient: using key type', keyType, 'for url', supabaseUrl);
   return createClient(supabaseUrl, supabaseKey);
 }
 
@@ -44,10 +48,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Check if user exists in Supabase (server-side client)
     const supabase = getSupabaseClient();
-    const { data: user, error } = await supabase.from('users').select('id').eq('id', userId).maybeSingle();
+    const { data: user, error } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle();
     if (error) {
       console.error('Supabase query error:', error);
-      return res.status(500).json({ error: 'Database query failed' });
+      const details = process.env.NODE_ENV === 'production' ? undefined : (error.message || error);
+      return res.status(500).json({ error: 'Database query failed', details });
     }
     if (!user) {
       return res.status(404).json({ error: 'User not found' });

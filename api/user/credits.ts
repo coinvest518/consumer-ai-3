@@ -1,5 +1,15 @@
-import { supabase } from '../../src/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+
+// Create a server-side Supabase client using server env vars
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables on server');
+  }
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // Portable serverless API route to get user credits from Supabase
 interface UserCredits {
@@ -24,6 +34,7 @@ export default async function handler(
     }
 
     try {
+        const supabase = getSupabaseClient();
         const { data, error } = await supabase
             .from('user_credits')
             .select('credits')
