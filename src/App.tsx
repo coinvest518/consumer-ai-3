@@ -7,6 +7,8 @@ import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { getBaseUrl } from "./lib/config";
 import "./debug-auth";
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 
 import { createAppKit } from '@reown/appkit/react';
@@ -41,6 +43,7 @@ import ThankYou from "./pages/ThankYou";
 import Pricing from "./pages/Pricing";
 import CreditBuilderPage from "./pages/CreditBuilderPage";
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
 
 
 const projectId = 'cd2c15a170750ad01e62ef80f2ba74f4';
@@ -109,20 +112,22 @@ function App() {
       <WagmiProvider config={wagmiAdapter.wagmiConfig} reconnectOnMount={false}>
         <BrowserRouter basename={baseUrl}>
           <AuthProvider>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-                <Route path="/dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="/credit-builder" element={<ProtectedRoute><CreditBuilderPage /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
+            <Elements stripe={stripePromise}>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                  <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute><EnhancedDashboard /></ProtectedRoute>} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/thank-you" element={<ThankYou />} />
+                  <Route path="/credit-builder" element={<ProtectedRoute><CreditBuilderPage /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </Elements>
           </AuthProvider>
         </BrowserRouter>
       </WagmiProvider>

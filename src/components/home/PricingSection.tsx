@@ -3,13 +3,12 @@ import { motion } from "framer-motion";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState } from "react";
-import { API_BASE_URL } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import CheckoutForm from "./CheckoutForm";
 
-// useNavigate is now imported above
-// This button now triggers the modal in Header via a custom event
 // This button now triggers the modal in Header via a custom event
 function BuyCreditsWithCryptoButton() {
   return (
@@ -26,8 +25,39 @@ function BuyCreditsWithCryptoButton() {
 export default function PricingSection() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
+
+  const handleUpgrade = async (plan: string) => {
+    if (!user) {
+      toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, userId: user.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.clientSecret) {
+        setClientSecret(data.clientSecret);
+        setIsModalOpen(true);
+      } else {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+    } catch (error) {
+      let message = 'Payment failed';
+      if (error && typeof error === 'object' && 'message' in error) {
+        message = (error as any).message;
+      }
+      toast({ title: 'Error', description: message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const freePlanFeatures = [
     "10 credits/month",
@@ -148,37 +178,10 @@ export default function PricingSection() {
               </p>
               <Button
                 className="mt-8 w-full bg-blue-500 text-white hover:bg-blue-600 border-blue-700"
-                onClick={async () => {
-                  if (!user) {
-                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
-                    return;
-                  }
-                  setIsLoading(true);
-                  try {
-                    const res = await fetch('/api/create-checkout-session', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ plan: 'starter', userId: user.id })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      throw new Error(data.error || 'Failed to create checkout session');
-                    }
-                  } catch (error) {
-                    let message = 'Payment failed';
-                    if (error && typeof error === 'object' && 'message' in error) {
-                      message = (error as any).message;
-                    }
-                    toast({ title: 'Error', description: message, variant: 'destructive' });
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
+                onClick={() => handleUpgrade('starter')}
                 disabled={isLoading}
               >
-                {isLoading ? 'Redirecting...' : 'Upgrade to Starter'}
+                {isLoading ? 'Processing...' : 'Upgrade to Starter'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -218,37 +221,10 @@ export default function PricingSection() {
               </p>
               <Button
                 className="mt-8 w-full bg-primary text-white hover:bg-primary-700 border-primary-800"
-                onClick={async () => {
-                  if (!user) {
-                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
-                    return;
-                  }
-                  setIsLoading(true);
-                  try {
-                    const res = await fetch('/api/create-checkout-session', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ plan: 'pro', userId: user.id })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      throw new Error(data.error || 'Failed to create checkout session');
-                    }
-                  } catch (error) {
-                    let message = 'Payment failed';
-                    if (error && typeof error === 'object' && 'message' in error) {
-                      message = (error as any).message;
-                    }
-                    toast({ title: 'Error', description: message, variant: 'destructive' });
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
+                onClick={() => handleUpgrade('pro')}
                 disabled={isLoading}
               >
-                {isLoading ? 'Redirecting...' : 'Upgrade to Pro'}
+                {isLoading ? 'Processing...' : 'Upgrade to Pro'}
               </Button>
             </div>
             <div className="pt-6 pb-8 px-6">
@@ -288,38 +264,11 @@ export default function PricingSection() {
               </p>
               <Button
                 className="mt-8 w-full bg-yellow-400 text-yellow-900 hover:bg-yellow-300 border-yellow-500"
-                onClick={async () => {
-                  if (!user) {
-                    toast({ title: 'Login required', description: 'Please log in to upgrade.', variant: 'destructive' });
-                    return;
-                  }
-                  setIsLoading(true);
-                  try {
-                    const res = await fetch('/api/create-checkout-session', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ plan: 'power', userId: user.id })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      throw new Error(data.error || 'Failed to create checkout session');
-                    }
-                  } catch (error) {
-                    let message = 'Payment failed';
-                    if (error && typeof error === 'object' && 'message' in error) {
-                      message = (error as any).message;
-                    }
-                    toast({ title: 'Error', description: message, variant: 'destructive' });
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
+                onClick={() => handleUpgrade('power')}
                 disabled={isLoading}
               >
-                {isLoading ? 'Redirecting...' : 'Upgrade to Power'}
-              </Button>
+                {isLoading ? 'Processing...' : 'Upgrade to Power'}
+              </button>
             </div>
             <div className="pt-6 pb-8 px-6">
               <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
@@ -335,6 +284,14 @@ export default function PricingSection() {
           </motion.div>
         </div>
       </div>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Your Purchase</DialogTitle>
+          </DialogHeader>
+          {clientSecret && <CheckoutForm clientSecret={clientSecret} />}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
