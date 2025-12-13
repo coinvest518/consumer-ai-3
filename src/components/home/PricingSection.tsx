@@ -268,7 +268,7 @@ export default function PricingSection() {
                 disabled={isLoading}
               >
                 {isLoading ? 'Processing...' : 'Upgrade to Power'}
-              </button>
+              </Button>
             </div>
             <div className="pt-6 pb-8 px-6">
               <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
