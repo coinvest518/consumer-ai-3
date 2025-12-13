@@ -48,23 +48,67 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Missing metadata' });
       }
 
-      // Record the purchase
+      // For subscriptions, we get subscription details
+      const subscriptionId = session.subscription as string;
+      let subscriptionData = null;
+
+      if (subscriptionId) {
+        // Fetch subscription details
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        subscriptionData = {
+          subscription_id: subscription.id,
+          status: subscription.status,
+          current_period_start: subscription.current_period_start,
+          current_period_end: subscription.current_period_end,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+        };
+      }
+
+      // Record the purchase/subscription
+      const creditsToAdd = plan === 'starter' ? 100 : plan === 'pro' ? 300 : plan === 'power' ? 1500 : 0;
+      
       const { error: purchaseError } = await supabase.from('purchases').insert({
         user_id: userId,
         amount: session.amount_total ? session.amount_total / 100 : 0,
-        credits: plan === 'starter' ? 100 : plan === 'pro' ? 300 : plan === 'power' ? 1500 : 0,
+        credits: creditsToAdd,
         stripe_session_id: session.id,
         status: 'completed',
         metadata: {
           payment_status: session.payment_status,
           customer_email: session.customer_details?.email,
-          plan
+          plan,
+          subscription: subscriptionData,
+          mode: session.mode, // 'subscription' or 'payment'
         }
       });
 
       if (purchaseError) {
         console.error('Error recording purchase:', purchaseError);
         return res.status(500).json({ error: 'Failed to record purchase' });
+      }
+
+      // Update or insert user credits
+      const { data: currentCredits } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', userId)
+        .single();
+
+      const newCredits = (currentCredits?.credits || 0) + creditsToAdd;
+
+      const { error: creditsError } = await supabase
+        .from('user_credits')
+        .upsert({
+          user_id: userId,
+          credits: newCredits,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (creditsError) {
+        console.error('Error updating credits:', creditsError);
+        // Don't fail for this, but log it
       }
 
       // Update user profile to mark as pro
@@ -81,7 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Don't fail the webhook for this, but log it
       }
 
-      console.log(`Purchase recorded for user ${userId}, plan: ${plan}`);
+      console.log(`Purchase/subscription recorded for user ${userId}, plan: ${plan}, mode: ${session.mode}`);
     }
 
     return res.status(200).json({ received: true });
