@@ -25,13 +25,19 @@ const CheckoutForm = ({ clientSecret, onSuccess, onCancel }: CheckoutFormProps) 
   };
 
   return (
-    <div id="checkout">
-      <EmbeddedCheckoutProvider
-        stripe={stripePromise}
-        options={options}
+    <div className="w-full max-w-4xl mx-auto">
+      <div 
+        id="checkout" 
+        className="min-h-[600px] max-h-[80vh] overflow-y-auto rounded-lg border border-gray-200 bg-white"
+        style={{ scrollbarWidth: 'thin' }}
       >
-        <EmbeddedCheckout />
-      </EmbeddedCheckoutProvider>
+        <EmbeddedCheckoutProvider
+          stripe={stripePromise}
+          options={options}
+        >
+          <EmbeddedCheckout />
+        </EmbeddedCheckoutProvider>
+      </div>
     </div>
   );
 };

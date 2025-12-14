@@ -81,14 +81,6 @@ export default function PricingSection() {
     });
   };
 
-  const freePlanFeatures = [
-    "10 credits/month",
-    "Basic AI model",
-    "Standard templates",
-    "Web access only",
-    "Community support"
-  ];
-
   const starterPlanFeatures = [
     "100 credits/month",
     "Access to advanced AI models",
@@ -130,51 +122,16 @@ export default function PricingSection() {
             Simple, Transparent Pricing
           </h2>
           <p className="mt-5 text-xl text-gray-500 sm:text-center">
-            Start for free, upgrade when you need more
+            Choose the plan that's right for you
           </p>
         </motion.div>
 
-        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-4 sm:gap-6 lg:max-w-6xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
+        <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-3">
           {/* Buy with Crypto Button - visible at top of pricing section */}
-          <div className="flex justify-center mt-8 mb-4 col-span-4">
+          <div className="flex justify-center mt-8 mb-4 col-span-3">
             {/* Reown modal trigger for multi-chain wallet connect/payment */}
             <BuyCreditsWithCryptoButton />
           </div>
-          {/* Free Plan */}
-          <motion.div 
-            className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200 bg-white"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Free</h3>
-              <p className="mt-4 text-sm text-gray-500">
-                Try the basics for free. Great for light users and exploring the platform.
-              </p>
-              <p className="mt-8">
-                <span className="text-4xl font-extrabold text-gray-900">$0</span>
-                <span className="text-base font-medium text-gray-500">/mo</span>
-              </p>
-              <Link to="/chat">
-                <Button variant="outline" className="mt-8 w-full border-primary text-primary hover:bg-primary-50">
-                  Start Chatting Free
-                </Button>
-              </Link>
-            </div>
-            <div className="pt-6 pb-8 px-6">
-              <h4 className="text-sm font-medium text-gray-900 tracking-wide uppercase">What's included</h4>
-              <ul className="mt-6 space-y-4">
-                {freePlanFeatures.map((feature, index) => (
-                  <li key={index} className="flex space-x-3">
-                    <CheckIcon className="flex-shrink-0 h-5 w-5 text-green-500" />
-                    <span className="text-sm text-gray-500">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </motion.div>
 
           {/* Starter Plan */}
           <motion.div 
@@ -238,7 +195,7 @@ export default function PricingSection() {
                 For power users and professionals who need more credits and features.
               </p>
               <p className="mt-8">
-                <span className="text-4xl font-extrabold text-gray-900">$49.99</span>
+                <span className="text-4xl font-extrabold text-gray-900">$50</span>
                 <span className="text-base font-medium text-gray-500">/mo</span>
               </p>
               <Button
@@ -307,17 +264,19 @@ export default function PricingSection() {
         </div>
       </div>
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-5xl w-full max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle>Complete Your Purchase</DialogTitle>
           </DialogHeader>
-          {clientSecret && (
-            <CheckoutForm 
-              clientSecret={clientSecret} 
-              onSuccess={handleCheckoutSuccess}
-              onCancel={handleCheckoutCancel}
-            />
-          )}
+          <div className="p-6 pt-4">
+            {clientSecret && (
+              <CheckoutForm 
+                clientSecret={clientSecret} 
+                onSuccess={handleCheckoutSuccess}
+                onCancel={handleCheckoutCancel}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </section>

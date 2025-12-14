@@ -18,10 +18,9 @@ function getSupabaseClient() {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 
 const PLAN_PRICE_IDS: Record<string, string> = {
-  pro: 'price_1RpXqHE4H116aDHAOzDlxOai', // $49.99
-  // TODO: The 'power' plan has the same price ID as the 'pro' plan. Please update it with the correct price ID.
-  power: 'price_1RpXqHE4H116aDHAOzDlxOai', // $99.99
-  starter: 'price_1RHZCqE4H116aDHAxIjzdR6b', // $9.99
+  starter: 'price_1RHZCqE4H116aDHAxIjzdR6b', // $9.99 - 100 credits
+  pro: 'price_1RmN5HE4H116aDHAvguWb41W', // $50.00 - 300 credits
+  power: 'price_1RpXqHE4H116aDHAOzDlxOai', // $99.99 - 1500 credits
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
