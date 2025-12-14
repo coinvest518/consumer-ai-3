@@ -20,8 +20,8 @@ export default function HowItWorksSection() {
     },
     {
       number: "4",
-      title: "Stay Updated",
-      description: "Receive optional SMS or email reminders about important deadlines and next steps in your consumer rights case."
+      title: "Track Your Mail Timeline",
+      description: "Log when you send certified mail and we'll calculate legal deadlines based on FCRA, FDCPA, and state laws. Get reminders about approaching deadlines."
     }
   ];
 

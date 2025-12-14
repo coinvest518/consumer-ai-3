@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AgentCard } from "@/components/ui/agent-card";
-import { TrackingTimeline, TrackingEvent } from "@/components/ui/tracking-timeline";
+import { CertifiedMailTimeline, CertifiedMailEvent } from "@/components/ui/certified-mail-timeline";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
@@ -76,55 +76,39 @@ const integrations = [
   },
   {
     id: "tracking",
-    name: "Mail Tracking",
+    name: "Certified Mail Timeline",
     icon: Package,
-    description: "Track certified mail and get delivery updates. This is a mail integration, not an AI agent.",
-    capabilities: ["USPS API", "Notifications"],
+    description: "Log certified mail dates and track legal deadlines. Educational tool for consumer law compliance.",
+    capabilities: ["Legal Deadlines", "FCRA/FDCPA Compliance"],
     usageCount: 6
   }
 ];
 
-// Sample tracking data
-const sampleTrackingEvents: TrackingEvent[] = [
+// Sample certified mail data
+const sampleMailEvents: CertifiedMailEvent[] = [
   {
     id: "1",
-    status: "Delivered",
-    location: "Front Door/Porch",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    type: "mailed",
+    description: "Credit dispute letter sent to Experian",
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
     isCompleted: true,
     isCurrent: false
   },
   {
     id: "2",
-    status: "Out for Delivery",
-    location: "Local Post Office",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
+    type: "delivered",
+    description: "Letter delivered (legal presumption)",
+    date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
     isCompleted: true,
     isCurrent: false
   },
   {
     id: "3",
-    status: "Arrived at Post Office",
-    location: "Regional Distribution Center",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    isCompleted: true,
-    isCurrent: false
-  },
-  {
-    id: "4",
-    status: "In Transit",
-    location: "Distribution Center",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-    isCompleted: true,
-    isCurrent: false
-  },
-  {
-    id: "5",
-    status: "Accepted",
-    location: "Shipping Partner Facility",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
-    isCompleted: true,
-    isCurrent: false
+    type: "deadline",
+    description: "FCRA 30-day response deadline",
+    date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 21).toISOString(),
+    isCompleted: false,
+    isCurrent: true
   }
 ];
 
@@ -363,7 +347,7 @@ export default function EnhancedDashboard() {
               {/* Tracking Section */}
               <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-gray-900">Recent Tracking</h2>
+                  <h2 className="text-lg font-medium text-gray-900">Recent Certified Mail</h2>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-8 px-2">
                       <RefreshCw className="h-3.5 w-3.5 mr-1" />
@@ -371,13 +355,13 @@ export default function EnhancedDashboard() {
                     </Button>
                     <Button variant="outline" size="sm" className="h-8 px-2">
                       <Package className="h-3.5 w-3.5 mr-1" />
-                      Add
+                      Add Mail
                     </Button>
                   </div>
                 </div>
-                <TrackingTimeline
-                  events={sampleTrackingEvents}
-                  currentStatus="Delivered"
+                <CertifiedMailTimeline
+                  events={sampleMailEvents}
+                  mailDescription="Credit Dispute Letter"
                 />
               </section>
             </div>
