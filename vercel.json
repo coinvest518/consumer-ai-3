@@ -16,6 +16,7 @@
     { "src": "/api/credit-builder/?", "dest": "/api/credit-builder.ts" },
     { "src": "/api/create-checkout-session/?", "dest": "/api/create-checkout-session.ts" },
     { "src": "/api/stripe-webhook/?", "dest": "/api/stripe-webhook.ts" },
+    { "src": "/api/upload/?", "dest": "/api/upload.ts" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
     
     { "src": "/(.*\\.(js|css|ico|png|jpg|svg))", "dest": "/$1" },
