@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import socket from "@/lib/socket";
 import { useAuth } from "@/hooks/useAuth";
+import { useSocket } from "@/hooks/useSocket";
 import type { ChatMessage } from "@/types/api";
 import { AgentEvent } from "@/lib/agentCallbacks";
 
@@ -24,6 +25,7 @@ const initialMessage: ChatMessage = {
  */
 export function useChat() {
   const { user } = useAuth();
+  const { isConnected, socketId } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   // Track if AI should speak its response
   const [shouldSpeakAI, setShouldSpeakAI] = useState(false);
@@ -36,46 +38,100 @@ export function useChat() {
     events: []
   });
 
+  // Log socket connection status
+  useEffect(() => {
+    console.log('[useChat] Socket connection status:', { isConnected, socketId });
+  }, [isConnected, socketId]);
+
   // Socket event listeners for agent activity
   useEffect(() => {
     if (!socket) return;
 
     const handleAgentStep = (data: any) => {
+      console.log('[Socket] Agent step:', data);
       setAgentState(prev => ({
         isActive: true,
         events: [...prev.events, {
           type: 'agent_action',
-          name: data.tool,
-          content: data.toolInput,
+          name: data.tool || data.action || 'Processing',
+          content: data.toolInput || data.input || data.message || 'Working...',
           data: data,
           timestamp: Date.now()
         }]
       }));
     };
 
-    const handleThinkingStart = () => {
-      setAgentState({ isActive: true, events: [] });
+    const handleThinkingStart = (data?: any) => {
+      console.log('[Socket] Thinking start:', data);
+      setAgentState({ 
+        isActive: true, 
+        events: [{
+          type: 'thinking',
+          name: 'AI Assistant',
+          content: 'Analyzing your request...',
+          timestamp: Date.now()
+        }] 
+      });
     };
 
     const handleThinkingComplete = (data: any) => {
+      console.log('[Socket] Thinking complete:', data);
       setAgentState(prev => ({ ...prev, isActive: false }));
     };
 
     const handleThinkingError = (error: string) => {
+      console.error('[Socket] Thinking error:', error);
       setAgentState({ isActive: false, events: [] });
       setError(error);
     };
 
+    const handleAgentAction = (data: any) => {
+      console.log('[Socket] Agent action:', data);
+      setAgentState(prev => ({
+        isActive: true,
+        events: [...prev.events, {
+          type: 'agent_action',
+          name: data.agent || data.tool || 'Agent',
+          content: data.action || data.message || 'Processing...',
+          data: data,
+          timestamp: Date.now()
+        }]
+      }));
+    };
+
+    const handleToolUse = (data: any) => {
+      console.log('[Socket] Tool use:', data);
+      setAgentState(prev => ({
+        isActive: true,
+        events: [...prev.events, {
+          type: 'tool_start',
+          name: data.tool || 'Tool',
+          content: data.input || 'Using tool...',
+          data: data,
+          timestamp: Date.now()
+        }]
+      }));
+    };
+
+    // Listen for various socket events that might be emitted by the backend
     socket.on('agent-step', handleAgentStep);
     socket.on('agent-thinking-start', handleThinkingStart);
     socket.on('agent-thinking-complete', handleThinkingComplete);
     socket.on('agent-thinking-error', handleThinkingError);
+    socket.on('agent-action', handleAgentAction);
+    socket.on('tool-use', handleToolUse);
+    socket.on('thinking', handleThinkingStart);
+    socket.on('processing', handleAgentAction);
 
     return () => {
       socket.off('agent-step', handleAgentStep);
       socket.off('agent-thinking-start', handleThinkingStart);
       socket.off('agent-thinking-complete', handleThinkingComplete);
       socket.off('agent-thinking-error', handleThinkingError);
+      socket.off('agent-action', handleAgentAction);
+      socket.off('tool-use', handleToolUse);
+      socket.off('thinking', handleThinkingStart);
+      socket.off('processing', handleAgentAction);
     };
   }, []);
 
@@ -124,7 +180,17 @@ export function useChat() {
 
     setIsLoading(true);
     setError(null);
-    setAgentState({ isActive: true, events: [] });
+    
+    // Start with thinking state
+    setAgentState({ 
+      isActive: true, 
+      events: [{
+        type: 'thinking',
+        name: 'AI Assistant',
+        content: 'Processing your request...',
+        timestamp: Date.now()
+      }] 
+    });
 
     const userMessage: ChatMessage = {
       id: `${Date.now()}-user`,
@@ -134,16 +200,44 @@ export function useChat() {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // If sending via voice, set shouldSpeakAI to true. You must set this in your voice input handler.
-    // Example: setShouldSpeakAI(true) when user sends via voice.
+    // Simulate agent thinking process if no real-time updates
+    const thinkingTimeout = setTimeout(() => {
+      setAgentState(prev => ({
+        isActive: true,
+        events: [...prev.events, {
+          type: 'agent_action',
+          name: 'Legal Database',
+          content: 'Searching consumer law database...',
+          timestamp: Date.now()
+        }]
+      }));
+    }, 1000);
+
+    const analysisTimeout = setTimeout(() => {
+      setAgentState(prev => ({
+        isActive: true,
+        events: [...prev.events, {
+          type: 'agent_action',
+          name: 'Analysis Agent',
+          content: 'Analyzing legal precedents...',
+          timestamp: Date.now()
+        }]
+      }));
+    }, 2500);
 
     try {
-      const socketId = socket.id;
-      const response = await api.sendMessage(content, user.id, user.id, socketId);
+      console.log('[useChat] Sending message with socket ID:', socketId, 'Connected:', isConnected);
+      
+      const response = await api.sendMessage(content, user.id, user.id, socketId || undefined);
+      
+      // Clear timeouts since we got a response
+      clearTimeout(thinkingTimeout);
+      clearTimeout(analysisTimeout);
+      
       if (response && response.data) {
         const aiMessage: ChatMessage = {
           id: response.data.messageId || `${Date.now()}-ai`,
-          content: response.data.message,
+          content: response.data.message || response.data.content || response.data.response,
           role: "assistant",
           created_at: response.data.created_at || new Date().toISOString()
         };
@@ -151,9 +245,12 @@ export function useChat() {
         // After AI response, reset shouldSpeakAI to false
         setShouldSpeakAI(false);
       } else {
-        throw new Error(response.error?.message || 'Invalid response from server');
+        throw new Error(response?.error?.message || 'Invalid response from server');
       }
     } catch (err: any) {
+      clearTimeout(thinkingTimeout);
+      clearTimeout(analysisTimeout);
+      console.error('[useChat] Send message error:', err);
       setError(err.message || 'Failed to send message');
     } finally {
       setIsLoading(false);

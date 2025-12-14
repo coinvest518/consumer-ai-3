@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
+    console.error('Webhook signature verification failed:', err.message?.replace(/[\r\n\t]/g, '_'));
     return res.status(400).json({ error: 'Webhook signature verification failed' });
   }
 
@@ -83,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
 
       if (purchaseError) {
-        console.error('Error recording purchase:', purchaseError);
+        console.error('Error recording purchase:', purchaseError?.message?.replace(/[\r\n\t]/g, '_') || 'Unknown error');
         return res.status(500).json({ error: 'Failed to record purchase' });
       }
 
@@ -107,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
       if (creditsError) {
-        console.error('Error updating credits:', creditsError);
+        console.error('Error updating credits:', creditsError?.message?.replace(/[\r\n\t]/g, '_') || 'Unknown error');
         // Don't fail for this, but log it
       }
 
@@ -121,16 +121,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .eq('id', userId);
 
       if (profileError) {
-        console.error('Error updating profile:', profileError);
+        console.error('Error updating profile:', {
+          code: profileError?.code,
+          message: profileError?.message?.replace(/[\r\n\t]/g, '_')
+        });
         // Don't fail the webhook for this, but log it
       }
 
-      console.log(`Purchase/subscription recorded for user ${userId}, plan: ${plan}, mode: ${session.mode}`);
+      console.log('Purchase/subscription recorded', {
+        userId: userId?.replace(/[\r\n\t]/g, '_'),
+        plan: plan?.replace(/[\r\n\t]/g, '_'),
+        mode: session.mode
+      });
     }
 
     return res.status(200).json({ received: true });
   } catch (err: any) {
-    console.error('Webhook processing error:', err);
+    console.error('Webhook processing error:', err?.message?.replace(/[\r\n\t]/g, '_') || 'Unknown error');
     return res.status(500).json({ error: 'Webhook processing failed' });
   }
 }

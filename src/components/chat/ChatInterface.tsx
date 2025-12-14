@@ -8,6 +8,7 @@ import ChatMessage from "./ChatMessage";
 import AgentSelector from "./AgentSelector";
 import { defaultTools } from "./ToolPanel";
 import { useChat } from "@/hooks/useChat";
+import { useSocket } from "@/hooks/useSocket";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import AgentActionDisplay from "./AgentActionDisplay";
@@ -25,6 +26,7 @@ interface ChatInterfaceProps {
 export default function ChatInterface(props: ChatInterfaceProps) {
   const chatHook = useChat();
   const { user } = useAuth();
+  const { isConnected: socketConnected } = useSocket();
 
   const [inputValue, setInputValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -358,7 +360,19 @@ export default function ChatInterface(props: ChatInterfaceProps) {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">ConsumerAI Assistant</h3>
-              <p className="text-xs text-gray-500 hidden sm:block">Online • Ready to help</p>
+              <p className="text-xs text-gray-500 hidden sm:block">
+                {socketConnected ? (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Real-time connected • Ready to help
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
+                    Connecting • Basic chat available
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">

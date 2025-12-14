@@ -13,33 +13,43 @@ export default function AgentActionDisplay({ events, isActive }: AgentActionDisp
   // Show loading state when agent is active but no events yet
   if (events.length === 0 && isActive) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 shadow-sm">
-        <div className="text-xs font-medium text-blue-600 mb-2 flex items-center">
-          <Brain className="h-3 w-3 mr-1 animate-pulse" />
-          AI Working...
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-3 shadow-sm">
+        <div className="text-sm font-medium text-blue-700 mb-3 flex items-center">
+          <Brain className="h-4 w-4 mr-2 animate-pulse" />
+          ConsumerAI is thinking...
         </div>
-        <div className="flex items-center gap-2 py-1.5 px-2 bg-white rounded-md shadow-sm border border-blue-100">
+        <div className="flex items-center gap-3 py-2 px-3 bg-white rounded-md shadow-sm border border-blue-100">
           <div className="flex gap-1">
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
             <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           </div>
-          <span className="text-xs text-gray-600">Processing your request...</span>
+          <span className="text-sm text-gray-700 font-medium">Analyzing your legal question...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 max-h-40 overflow-y-auto shadow-sm">
-      <div className="text-xs font-medium text-blue-600 mb-2 flex items-center">
-        <Brain className="h-3 w-3 mr-1" />
-AI Working...
+    <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-3 max-h-48 overflow-y-auto shadow-sm">
+      <div className="text-sm font-medium text-blue-700 mb-3 flex items-center">
+        <Brain className="h-4 w-4 mr-2 animate-pulse" />
+        ConsumerAI Agent Activity
       </div>
       <div className="space-y-2">
         {events.map((event, index) => (
           <AgentEventItem key={index} event={event} />
         ))}
+        {isActive && (
+          <div className="flex items-center gap-2 py-2 px-3 bg-white/70 rounded-md border border-blue-100">
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></div>
+              <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <span className="text-xs text-gray-600 italic">Processing...</span>
+          </div>
+        )}
       </div>
     </div>
   );

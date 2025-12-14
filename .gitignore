@@ -45,3 +45,6 @@ Thumbs.db
 .replit.nix
 .breakpoints
 .vercel
+
+# Documentation and assets
+attached_assets/
