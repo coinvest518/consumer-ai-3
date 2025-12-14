@@ -14,19 +14,7 @@ This integration adds a floating video chat button that connects users to a Tavu
 ### 2. Update Environment Variables
 In your `.env` file, replace the placeholder values:
 
-```env
-# Tavus.io Configuration
-VITE_TAVUS_API_KEY=2205a4ce09c0421b8470878eb22e14e0
-VITE_TAVUS_PERSONA_ID=pb1db14ac254
-VITE_TAVUS_REPLICA_ID=r4317e64d25a
-TAVUS_API_KEY=2205a4ce09c0421b8470878eb22e14e0
-TAVUS_PERSONA_ID=pb1db14ac254
-TAVUS_REPLICA_ID=r4317e64d25a
 
-# Daily.co Configuration (for advanced video features)
-DAILY_API_KEY=7537b2d6fa5206b05b48fbff98829a4ed3efa7eef3d4d71969ec34120debf007
-VITE_DAILY_API_KEY=7537b2d6fa5206b05b48fbff98829a4ed3efa7eef3d4d71969ec34120debf007
-```
 
 **✅ Your credentials are already configured!**
 

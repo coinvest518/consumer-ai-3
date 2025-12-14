@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
-import { trackFileUpload, checkStorageQuota } from '@/lib/storageUtils';
+import { checkStorageQuota } from '@/lib/storageUtils';
 import { api } from '@/lib/api-client';
 
 interface CreditReportUploadProps {
@@ -118,20 +118,29 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
 
     if (uploadError) throw uploadError;
 
-    // Track the file upload
-    const success = await trackFileUpload(
-      user.id,
-      filePath,
-      file.name,
-      file.size,
-      file.type,
-      'users-file-storage'
-    );
+    // Register the upload with the server to record ownership and usage
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
 
-    if (!success) {
-      // Clean up uploaded file if tracking failed
+    const resp = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({
+        filePath,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        bucket: 'users-file-storage'
+      })
+    });
+
+    if (!resp.ok) {
       await supabase.storage.from('users-file-storage').remove([filePath]);
-      throw new Error('Failed to track file upload');
+      const body = await resp.json().catch(() => ({}));
+      throw new Error(body?.error || 'Failed to register file on server');
     }
 
     return filePath;

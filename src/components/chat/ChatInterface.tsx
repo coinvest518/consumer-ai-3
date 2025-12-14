@@ -13,7 +13,7 @@ import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import AgentActionDisplay from "./AgentActionDisplay";
 import { supabase } from "@/lib/supabase";
-import { trackFileUpload } from "@/lib/storageUtils";
+// import { trackFileUpload } from '@/lib/storageUtils';
 
 interface ChatInterfaceProps {
   messages?: ChatMessageType[];
@@ -148,19 +148,29 @@ export default function ChatInterface(props: ChatInterfaceProps) {
 
       if (uploadError) throw uploadError;
 
-      // Track the upload
-      const success = await trackFileUpload(
-        user.id,
-        filePath,
-        file.name,
-        file.size,
-        file.type,
-        'users-file-storage'
-      );
+      // Register upload on the server to record ownership and usage
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
 
-      if (!success) {
+      const resp = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          filePath,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          bucket: 'users-file-storage'
+        })
+      });
+
+      if (!resp.ok) {
         await supabase.storage.from('users-file-storage').remove([filePath]);
-        throw new Error('Failed to track file upload');
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed to register file on server');
       }
 
       // Automatically trigger report agent with the file
@@ -390,14 +400,16 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               <Sparkles className="h-4 w-4 text-yellow-500" />
               <span className="text-xs text-gray-600">AI-Powered</span>
             </div>
-            <button
-              onClick={() => window.open('https://buymeacoffee.com/coinvest/extras', '_blank')}
+            <a
+              href="https://buymeacoffee.com/coinvest/extras"
+              target="_blank"
+              rel="noopener noreferrer"
               className="hidden sm:flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
               title="Free Resources & Digital Products"
             >
               <Gift className="h-4 w-4" />
               <span className="text-xs font-medium">Free Resources</span>
-            </button>
+            </a>
           </div>
         </div>
 
@@ -432,9 +444,12 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               })
             )}
 
-            {(isLoading || agentState.isActive) && (
+            {(isLoading && (agentState.isActive || agentState.events.length > 0)) && (
               <div className="flex justify-center">
-                <AgentActionDisplay events={agentState.events} isActive={agentState.isActive} />
+                <AgentActionDisplay 
+                  events={agentState.events} 
+                  isActive={isLoading && agentState.isActive} 
+                />
               </div>
             )}
           </div>

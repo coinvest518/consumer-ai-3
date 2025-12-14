@@ -49,7 +49,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = getSupabaseClient();
     const { data: user, error } = await supabase.from('profiles').select('id').eq('id', userId).maybeSingle();
     if (error) {
-      console.error('Supabase query error:', error);
+      console.error('Supabase query error:', {
+        code: error?.code,
+        message: error?.message?.replace(/[\r\n\t]/g, '_')
+      });
       const details = process.env.NODE_ENV === 'production' ? undefined : (error.message || error);
       return res.status(500).json({ error: 'Database query failed', details });
     }
