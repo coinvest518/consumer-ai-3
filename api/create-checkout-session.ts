@@ -64,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       ui_mode: 'embedded',
+      redirect_on_completion: 'never',
       client_reference_id: userId,
       metadata: { userId, plan },
     });
