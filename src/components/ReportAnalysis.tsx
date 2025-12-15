@@ -15,40 +15,75 @@ type Sections = {
 function parseAnalysis(text: string): Sections {
   const sections: Sections = {};
 
-  // Extract title (first line like "Analysis of ...")
-  const titleMatch = text.match(/^\s*(Analysis of[^\n]+)/i);
-  if (titleMatch) sections.title = titleMatch[1].trim();
+  // Normalize line endings and split into lines
+  const lines = text.replace(/\r/g, '').split('\n');
 
-  const getSection = (name: string) => {
-    const rx = new RegExp(`${name}([\s\S]*?)(?=\n[A-Z]{4,}|$)`, 'm');
-    const m = text.match(rx);
-    if (!m) return [];
-    // split by lines that look like bullets or inline markers
-    return m[1]
-      .split(/\n+/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0)
-      .map((l) => l.replace(/^[-•\u2022\u25CF\d+\.\s]*\s*/, ''));
+  // Extract title (first line like "Analysis of ...")
+  const titleLine = lines.find((l) => /Analysis of\s+/i.test(l));
+  if (titleLine) sections.title = titleLine.trim();
+
+  // Find heading lines in a tolerant, case-insensitive way and collect content until next heading
+  const headingIndices: { name: string; index: number; inlineContent?: string }[] = [];
+  const headingRegex = /^(?:[-\s]*)?(HIGHLIGHTED VIOLATIONS|OUTLINED ERRORS|ACTIONABLE ITEMS|EVIDENCE QUOTES|HIGHLIGHTED|OUTLINED|ACTIONABLE|ACTIONS)\b\s*[:\-\s]*(.*)$/i;
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    const m = trimmed.match(headingRegex);
+    if (m) {
+      const name = (m[1] || '').toUpperCase();
+      const inline = (m[2] || '').trim();
+      headingIndices.push({ name, index: i, inlineContent: inline.length > 0 ? inline : undefined });
+    }
+  });
+
+  const getRange = (startIdx: number, endIdx: number, includeInline?: string) => {
+    const range = lines.slice(startIdx + 1, endIdx).map((l) => l.trim()).filter((l) => l.length > 0);
+    if (includeInline) range.unshift(includeInline);
+    return range;
   };
 
-  sections.highlighted = getSection('HIGHLIGHTED VIOLATIONS');
-  sections.outlined = getSection('OUTLINED ERRORS');
-  sections.actions = getSection('ACTIONABLE ITEMS');
-  // Evidence quotes: look for the heading and then capture the subsequent quoted lines
-  const evidenceRx = /EVIDENCE QUOTES([\s\S]*)/m;
-  const ev = text.match(evidenceRx);
-  if (ev) {
-    // split by lines starting with quotes
-    const parts = ev[1]
-      .split(/\n{1,}/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-    sections.evidence = parts;
+  const findHeading = (heading: string) => {
+    const h = headingIndices.find((h) => h.name.includes(heading));
+    if (!h) return [] as string[];
+    const start = h.index;
+    const next = headingIndices.find((hh) => hh.index > start);
+    const end = next ? next.index : lines.length;
+    return getRange(start, end, h.inlineContent);
+  };
+
+  const rawHighlighted = findHeading('HIGHLIGHTED VIOLATIONS');
+  sections.highlighted = rawHighlighted.map((l) => l.replace(/^[-•\u2022\u25CF\d+\.\s]*\s*/, ''));
+
+  const rawOutlined = findHeading('OUTLINED ERRORS');
+  sections.outlined = rawOutlined.map((l) => l.replace(/^[-•\u2022\u25CF\d+\.\s]*\s*/, ''));
+
+  const rawActions = findHeading('ACTIONABLE ITEMS');
+  sections.actions = rawActions.map((l) => l.replace(/^[-•\u2022\u25CF\d+\.\s]*\s*/, ''));
+
+  // Evidence quotes — try to find heading and capture the block
+  const evidenceRaw = findHeading('EVIDENCE QUOTES');
+  if (evidenceRaw.length > 0) {
+    sections.evidence = evidenceRaw;
+  } else {
+    // fallback: capture any quoted lines in the text
+    const quoted = text.split(/\n+/).map((l) => l.trim()).filter((l) => l.startsWith('"') || l.startsWith("'"));
+    if (quoted.length > 0) sections.evidence = quoted;
+  }
+
+  // If we found no section headings at all, provide a best-effort fallback: treat non-empty paragraphs as actions/highlights
+  const hasAny = (sections.highlighted && sections.highlighted.length > 0) || (sections.outlined && sections.outlined.length > 0) || (sections.actions && sections.actions.length > 0) || (sections.evidence && sections.evidence.length > 0);
+  if (!hasAny) {
+    const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0);
+    // Prefer shorter bullet-like paragraphs as highlighted items
+    sections.highlighted = paragraphs.filter(p => p.length < 300).slice(0, 6);
+    if (paragraphs.length > 0 && !sections.footer) sections.footer = paragraphs.slice(-1)[0];
   }
 
   // footer (e.g., Analysis saved ...)
-  const footerMatch = text.match(/---([\s\S]*?)$/m);
-  if (footerMatch) sections.footer = footerMatch[1].trim();
+  const footerStart = lines.findIndex((l) => l.trim().startsWith('---'));
+  if (footerStart >= 0) {
+    sections.footer = lines.slice(footerStart + 1).join('\n').trim();
+  }
 
   return sections;
 }
