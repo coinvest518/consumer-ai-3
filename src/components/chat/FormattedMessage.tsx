@@ -119,10 +119,8 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
   // detect simple markdown patterns
   const looksLikeMarkdown = /(^#|\*\*|\*\s|\-\s|\[[^\]]+\]\([^\)]+\)|`)/m.test(parsedContent);
 
-  // If this looks like a report analysis (special headings) or is a long analysis block, render with ReportAnalysis
-  const containsReportKeywords = /HIGHLIGHTED VIOLATIONS|EVIDENCE QUOTES|OUTLINED ERRORS|ACTIONABLE ITEMS|OUTLINED ERRORS|ANALYSIS OF|ACTIONABLE ITEMS/i.test(parsedContent);
-  const isLongAnalysis = parsedContent.split(/\n/).length > 6 && parsedContent.length > 400;
-  const looksLikeReportAnalysis = containsReportKeywords || isLongAnalysis;
+  // If this looks like a report analysis (contains Analysis of), render with ReportAnalysis
+  const looksLikeReportAnalysis = /Analysis of\s+\d+.*\.pdf/i.test(parsedContent);
   if (looksLikeReportAnalysis) {
     return (
       <ErrorBoundary>
