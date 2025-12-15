@@ -117,13 +117,6 @@ export default function EnhancedDashboard() {
   // Auth and navigation
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const {
-    messages,
-    isLoading: chatLoading,
-    error: chatError,
-    loadChatById,
-    agentState,
-  } = useChat();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
@@ -180,7 +173,7 @@ export default function EnhancedDashboard() {
           ...prev,
           dailyLimit: 5,
           chatsUsed: 0,
-          remaining: 5,
+          remaining: Math.min(5, prev.credits),
           credits: 100,
           isPro: true
         }));
@@ -198,7 +191,10 @@ export default function EnhancedDashboard() {
         ...prev,
         dailyLimit: metricsData.data?.daily_limit ?? 5,
         chatsUsed: metricsData.data?.chats_used ?? prev.chatsUsed,
-        remaining: (metricsData.data?.daily_limit ?? 5) - (metricsData.data?.chats_used ?? 0),
+        remaining: Math.min(
+          (metricsData.data?.daily_limit ?? 5) - (metricsData.data?.chats_used ?? 0),
+          creditsData.data?.credits ?? 0
+        ),
         credits: creditsData.data?.credits ?? prev.credits,
         isPro: profileData.data?.is_pro ?? prev.isPro
       }));
@@ -209,12 +205,20 @@ export default function EnhancedDashboard() {
         ...prev,
         dailyLimit: 5,
         chatsUsed: 0,
-        remaining: 5,
+        remaining: Math.min(5, prev.credits),
         credits: 0,
         isPro: false
       }));
     }
   };
+
+  const {
+    messages,
+    isLoading: chatLoading,
+    error: chatError,
+    loadChatById,
+    agentState,
+  } = useChat(refetchMetrics);
 
   // Removed testChatConnection function
 

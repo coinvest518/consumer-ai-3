@@ -7,15 +7,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId, linkId } = req.body;
-  if (!userId || !linkId) {
-    return res.status(400).json({ error: 'Missing userId or linkId' });
+  const { userId, builderId, points } = req.body;
+  if (!userId || !builderId || !points) {
+    return res.status(400).json({ error: 'Missing userId, builderId, or points' });
   }
 
   // Log the click in Supabase (table: credit_builder_clicks)
   const { error: insertError } = await supabase
     .from('credit_builder_clicks')
-    .insert([{ user_id: userId, link_id: linkId, clicked_at: new Date().toISOString() }]);
+    .insert([{ user_id: userId, link_id: builderId, clicked_at: new Date().toISOString() }]);
 
   if (insertError) {
     return res.status(500).json({ error: 'Failed to log click', details: insertError.message });
@@ -36,17 +36,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   let updateError = null;
   if (userCredit) {
-    // Row exists, increment credits
+    // Row exists, increment credits by the points value
     const { error } = await supabase
       .from('user_credits')
-      .update({ credits: userCredit.credits + 1 })
+      .update({ credits: userCredit.credits + points })
       .eq('user_id', userId);
     updateError = error;
   } else {
-    // Row does not exist, insert new
+    // Row does not exist, insert new with points value
     const { error } = await supabase
       .from('user_credits')
-      .insert([{ user_id: userId, credits: 1 }]);
+      .insert([{ user_id: userId, credits: points }]);
     updateError = error;
   }
 
@@ -69,9 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         event: 'credits-updated',
         userId: userId,
         data: {
-          creditsAwarded: 1,
+          creditsAwarded: points,
           source: 'credit-builder',
-          totalCredits: userCredit ? userCredit.credits + 1 : 1
+          totalCredits: userCredit ? userCredit.credits + points : points
         }
       })
     });

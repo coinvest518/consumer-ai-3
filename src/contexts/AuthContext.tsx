@@ -24,6 +24,76 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Ensure a profile exists for the user, create if missing
+const ensureProfileExists = async (supabaseUser: SupabaseUser) => {
+  try {
+    // Check if profile already exists
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', supabaseUser.id)
+      .single();
+
+    if (!existingProfile) {
+      // Profile doesn't exist, create it
+      console.log('Creating profile for user:', supabaseUser.id);
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: supabaseUser.id,
+          email: supabaseUser.email,
+          is_pro: false, // Default to free tier
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error('Error creating profile:', insertError);
+      } else {
+        console.log('Profile created successfully for user:', supabaseUser.id);
+      }
+    }
+
+    // Check if user_credits record exists
+    const { data: existingCredits, error: creditsFetchError } = await supabase
+      .from('user_credits')
+      .select('id')
+      .eq('user_id', supabaseUser.id)
+      .single();
+
+    // Check if user_metrics record exists
+    const { data: existingMetrics, error: metricsFetchError } = await supabase
+      .from('user_metrics')
+      .select('id')
+      .eq('user_id', supabaseUser.id)
+      .single();
+
+    if (!existingMetrics) {
+      // User metrics don't exist, create them
+      console.log('Creating user_metrics for user:', supabaseUser.id);
+      const { error: metricsInsertError } = await supabase
+        .from('user_metrics')
+        .insert({
+          user_id: supabaseUser.id,
+          chats_used: 0, // Default to 0 chats used
+          daily_limit: 50, // Default daily limit
+          last_reset: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (metricsInsertError) {
+        console.error('Error creating user_metrics:', metricsInsertError);
+      } else {
+        console.log('User metrics created successfully for user:', supabaseUser.id);
+      }
+    }
+  } catch (error) {
+    console.error('Error in ensureProfileExists:', error);
+    // Don't throw - allow auth to proceed even if profile/credits creation fails
+  }
+};
+
 // Convert Supabase user to our User type
 const mapUser = (supabaseUser: SupabaseUser): User => ({
   id: supabaseUser.id,
@@ -89,6 +159,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("Auth state changed:", event, currentSession);
       if (currentSession) {
+        // Check if profile exists and create if not
+        await ensureProfileExists(currentSession.user);
         setUser(mapUser(currentSession.user));
       } else {
         setUser(null);

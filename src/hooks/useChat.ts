@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import type { ChatMessage } from "@/types/api";
 import { AgentEvent } from "@/lib/agentCallbacks";
+import { supabase } from "@/lib/supabase";
 
 // Agent state for tracking agent actions
 export interface AgentState {
@@ -23,7 +24,7 @@ const initialMessage: ChatMessage = {
  * Centralized chat state management for a single active chat session.
  * Handles loading chat history and sending messages.
  */
-export function useChat() {
+export function useChat(onCreditsUpdate?: () => void) {
   const { user } = useAuth();
   const { isConnected, socketId } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
@@ -189,6 +190,26 @@ export function useChat() {
         return;
     }
 
+    // Check if user has enough credits (1 credit per message)
+    try {
+      const creditsResponse = await fetch('/api/user/credits', {
+        method: 'GET',
+        headers: {
+          'user-id': user.id
+        }
+      });
+      const creditsData = await creditsResponse.json();
+      
+      if (creditsData.credits < 1) {
+        setError('Insufficient credits. You need at least 1 credit to send a message.');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking credits:', error);
+      setError('Unable to verify credits. Please try again.');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
@@ -255,6 +276,46 @@ export function useChat() {
         setMessages(prev => [...prev, aiMessage]);
         // After AI response, reset shouldSpeakAI to false
         setShouldSpeakAI(false);
+        
+        // Deduct 1 credit and increment chat usage
+        try {
+          // Get current values first
+          const [creditsResult, metricsResult] = await Promise.all([
+            supabase.from('user_credits').select('credits').eq('user_id', user.id).single(),
+            supabase.from('user_metrics').select('chats_used').eq('user_id', user.id).single()
+          ]);
+
+          const currentCredits = creditsResult.data?.credits || 0;
+          const currentChatsUsed = metricsResult.data?.chats_used || 0;
+
+          // Deduct credit from user_credits
+          await supabase
+            .from('user_credits')
+            .update({ 
+              credits: currentCredits - 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+
+          // Increment chats_used in user_metrics
+          await supabase
+            .from('user_metrics')
+            .update({ 
+              chats_used: currentChatsUsed + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user.id);
+
+          console.log('Credit deducted and chat usage incremented for user:', user.id);
+        } catch (creditError) {
+          console.error('Error updating credits/usage:', creditError);
+          // Don't fail the chat if credit update fails
+        }
+
+        // Notify parent component that credits were updated
+        if (onCreditsUpdate) {
+          onCreditsUpdate();
+        }
         
         // Refresh chat history to ensure sync
         try {
