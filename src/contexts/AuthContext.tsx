@@ -61,6 +61,25 @@ const ensureProfileExists = async (supabaseUser: SupabaseUser) => {
       .eq('user_id', supabaseUser.id)
       .single();
 
+    if (!existingCredits) {
+      // User credits don't exist, create them
+      console.log('Creating user_credits for user:', supabaseUser.id);
+      const { error: creditsInsertError } = await supabase
+        .from('user_credits')
+        .insert({
+          user_id: supabaseUser.id,
+          credits: 0, // Default to 0 credits
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (creditsInsertError) {
+        console.error('Error creating user_credits:', creditsInsertError);
+      } else {
+        console.log('User credits created successfully for user:', supabaseUser.id);
+      }
+    }
+
     // Check if user_metrics record exists
     const { data: existingMetrics, error: metricsFetchError } = await supabase
       .from('user_metrics')
@@ -159,9 +178,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("Auth state changed:", event, currentSession);
       if (currentSession) {
-        // Check if profile exists and create if not
-        await ensureProfileExists(currentSession.user);
+        // Set user immediately without waiting for profile creation
         setUser(mapUser(currentSession.user));
+        
+        // Create profile/credits/metrics in background (non-blocking)
+        ensureProfileExists(currentSession.user).catch(error => {
+          console.error('Background profile creation failed:', error);
+        });
       } else {
         setUser(null);
       }
