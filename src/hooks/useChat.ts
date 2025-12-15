@@ -77,24 +77,8 @@ export function useChat(onCreditsUpdate?: () => void) {
 
     const handleThinkingComplete = (data: any) => {
       console.log('[Socket] Thinking complete:', data);
+      // Just clear the thinking state - messages come from HTTP API
       setAgentState(prev => ({ ...prev, isActive: false }));
-      
-      // Add the AI response message if provided
-      if (data && (data.response || data.message || data.content)) {
-        const aiMessage: ChatMessage = {
-          id: data.messageId || `${Date.now()}-ai`,
-          content: data.response || data.message || data.content,
-          role: "assistant",
-          created_at: data.created_at || new Date().toISOString()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        
-        // Clear the HTTP fallback timeout since Socket added the message
-        if ((window as any).socketTimeout) {
-          clearTimeout((window as any).socketTimeout);
-          (window as any).socketTimeout = null;
-        }
-      }
     };
 
     const handleThinkingError = (error: string) => {
@@ -285,21 +269,8 @@ export function useChat(onCreditsUpdate?: () => void) {
           created_at: response.data.created_at || new Date().toISOString()
         };
         
-        // Set a timeout to add the message from HTTP response if Socket.IO doesn't add it
-        const socketTimeout = setTimeout(() => {
-          console.log('[useChat] Socket.IO did not add message, adding from HTTP response');
-          setMessages(prev => {
-            // Check if message already exists (added by Socket)
-            const exists = prev.some(msg => msg.id === aiMessage.id);
-            if (!exists) {
-              return [...prev, aiMessage];
-            }
-            return prev;
-          });
-        }, 5000); // 5 second timeout
-        
-        // Store the timeout to clear it if Socket adds the message
-        (window as any).socketTimeout = socketTimeout;
+        // Add message directly from HTTP response (Socket.IO only handles thinking states)
+        setMessages(prev => [...prev, aiMessage]);
         
         // After AI response, reset shouldSpeakAI to false
         setShouldSpeakAI(false);
@@ -373,12 +344,6 @@ export function useChat(onCreditsUpdate?: () => void) {
     } finally {
       setIsLoading(false);
       setAgentState({ isActive: false, events: [] });
-      
-      // Clear any remaining timeout
-      if ((window as any).socketTimeout) {
-        clearTimeout((window as any).socketTimeout);
-        (window as any).socketTimeout = null;
-      }
     }
   }, [currentChatId, user?.id]);
   
