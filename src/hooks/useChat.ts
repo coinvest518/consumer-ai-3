@@ -198,16 +198,22 @@ export function useChat(onCreditsUpdate?: () => void) {
           'user-id': user.id
         }
       });
-      const creditsData = await creditsResponse.json();
       
-      if (creditsData.credits < 1) {
-        setError('Insufficient credits. You need at least 1 credit to send a message.');
-        return;
+      if (!creditsResponse.ok) {
+        console.warn('Credits API returned error:', creditsResponse.status);
+        // Allow message if API is down - don't block users
+      } else {
+        const creditsData = await creditsResponse.json();
+        
+        if (creditsData.credits < 1) {
+          setError('Insufficient credits. You need at least 1 credit to send a message.');
+          return;
+        }
       }
     } catch (error) {
       console.error('Error checking credits:', error);
-      setError('Unable to verify credits. Please try again.');
-      return;
+      // Allow message if credit check fails - don't block users due to API issues
+    }
     }
 
     setIsLoading(true);
