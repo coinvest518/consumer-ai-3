@@ -173,12 +173,26 @@ export default function EnhancedDashboard() {
   const refetchMetrics = async () => {
     try {
       if (!user) return;
+
+      // In dev mode with bypass auth, use mock data
+      if (import.meta.env.DEV && user.id === 'dev-user') {
+        setMetrics((prev) => ({
+          ...prev,
+          dailyLimit: 5,
+          chatsUsed: 0,
+          remaining: 5,
+          credits: 100,
+          isPro: true
+        }));
+        return;
+      }
+
       // Fetch from Supabase directly
       const [creditsData, profileData] = await Promise.all([
         supabase.from('user_credits').select('credits').eq('user_id', user.id).single(),
         supabase.from('profiles').select('questions_asked, questions_remaining, is_pro').eq('id', user.id).single()
       ]);
-      
+
       setMetrics((prev) => ({
         ...prev,
         dailyLimit: 5, // Assuming fixed daily limit
@@ -189,6 +203,15 @@ export default function EnhancedDashboard() {
       }));
     } catch (err) {
       console.error('Error fetching metrics:', err);
+      // In case of error, set some default values
+      setMetrics((prev) => ({
+        ...prev,
+        dailyLimit: 5,
+        chatsUsed: 0,
+        remaining: 5,
+        credits: 0,
+        isPro: false
+      }));
     }
   };
 

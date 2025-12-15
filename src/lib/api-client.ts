@@ -114,11 +114,13 @@ export const api = {
     return fetchApi(`user/stats?userId=${userId}`, {}, userId);
   },
 
-  // User credits
-  getUserCredits: (userId: string) => {
-    if (!userId) throw new Error('User ID is required for getUserCredits');
-    return fetchApi(`user/credits?userId=${userId}`, {}, userId);
+  // User files
+  getUserFiles: (userId: string) => {
+    if (!userId) throw new Error('User ID is required for getUserFiles');
+    return fetchApi('user/files', {}, userId);
   },
+
+  // ...existing code...
 
   // Storage quota
   getStorageQuota: (userId: string) => {

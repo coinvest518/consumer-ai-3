@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import AgentActionDisplay from "./AgentActionDisplay";
 import { supabase } from "@/lib/supabase";
 // import { trackFileUpload } from '@/lib/storageUtils';
+import FileDashboardWidget from "./FileDashboardWidget";
 
 interface ChatInterfaceProps {
   messages?: ChatMessageType[];
@@ -341,6 +342,22 @@ export default function ChatInterface(props: ChatInterfaceProps) {
               Consumer Protection
             </button>
           </div>
+        </div>
+
+        <div className="p-3 sm:p-4 border-t border-gray-200">
+          <FileDashboardWidget
+            onFileSelect={(file) => {
+              // Handle file selection - could show file preview or set context
+              console.log('File selected:', file);
+            }}
+            onAnalyzeFile={(file) => {
+              // Send analysis request to chat
+              const agentMessage = `[Agent Request: report] Please analyze this file: ${file.path}. The file "${file.name}" has been uploaded and is ready for analysis.`;
+              const messageToSend = props.onSendMessage !== undefined ? props.onSendMessage : chatHook.sendMessage;
+              messageToSend(agentMessage);
+              setIsSidebarOpen(false);
+            }}
+          />
         </div>
       </div>
 
