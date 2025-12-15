@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
 
 import AgentSelector from "./AgentSelector";
-import { defaultTools } from "./ToolPanel";
+import { defaultPrompts } from "./ToolPanel";
 import { useChat } from "@/hooks/useChat";
 import { useSocket } from "@/hooks/useSocket";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
@@ -125,6 +125,10 @@ export default function ChatInterface(props: ChatInterfaceProps) {
       setSelectedAgent(null);
       setSelectedTool(null);
     }
+  };
+
+  const handlePromptSelect = (prompt: string) => {
+    setInputValue(prompt);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -288,33 +292,19 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         </div>
 
         <div className="flex-1 p-3 sm:p-4 overflow-y-auto">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Available Tools</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Suggested Questions</h3>
           <div className="space-y-2">
-            {defaultTools.map((tool) => {
-              const Icon = tool.icon;
-              const isSelected = selectedTool === tool.id;
-              return (
-                <button
-                  key={tool.id}
-                  onClick={() => handleToolSelect(tool.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg text-left transition-colors touch-manipulation",
-                    isSelected
-                      ? "bg-blue-100 text-blue-700 border border-blue-200"
-                      : "hover:bg-gray-100 active:bg-gray-200 text-gray-700"
-                  )}
-                >
-                  <Icon className={cn(
-                    "h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0",
-                    isSelected ? "text-blue-600" : "text-gray-500"
-                  )} />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-medium text-sm truncate">{tool.name}</div>
-                    <div className="text-xs text-gray-500 line-clamp-2">{tool.description}</div>
-                  </div>
-                </button>
-              );
-            })}
+            {defaultPrompts.map((prompt, index) => (
+              <button
+                key={index}
+                onClick={() => handlePromptSelect(prompt)}
+                className="w-full flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg text-left transition-colors touch-manipulation hover:bg-gray-100 active:bg-gray-200 text-gray-700 border border-gray-200"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm">{prompt}</div>
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 

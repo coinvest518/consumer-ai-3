@@ -40,9 +40,7 @@ yarn-error.log*
 # OS files
 Thumbs.db
 
-# Replit specific
-.replit
-.replit.nix
+
 .breakpoints
 .vercel
 

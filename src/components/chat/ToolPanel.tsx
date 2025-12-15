@@ -127,24 +127,16 @@ export function ToolPanel({
   );
 }
 
-// Default tools
-export const defaultTools: Tool[] = [
-  {
-    id: "search",
-    name: "Search Agent",
-    icon: Search,
-    description: "AI-powered search for consumer law information"
-  },
-  {
-    id: "report",
-    name: "Report Analysis",
-    icon: FileText,
-    description: "AI analyzes credit reports for errors"
-  },
-  {
-    id: "letter",
-    name: "Letter Generator",
-    icon: FileText,
-    description: "AI generates dispute letters"
-  }
+// Default prompts for consumer finance questions
+export const defaultPrompts: string[] = [
+  "How can I fix late payments on my credit report?",
+  "What should I do if I see errors on my credit report?",
+  "How to dispute inaccurate information with credit bureaus?",
+  "What are my rights under the Fair Credit Reporting Act?",
+  "How to improve my credit score quickly?",
+  "What to do if I'm being contacted by debt collectors?",
+  "How to remove old negative items from my credit report?",
+  "What are the best ways to build credit?",
+  "How to handle identity theft affecting my credit?",
+  "What should I know about credit card debt settlement?"
 ];

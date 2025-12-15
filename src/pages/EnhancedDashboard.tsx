@@ -12,6 +12,7 @@ import { CertifiedMailTimeline, CertifiedMailEvent } from "@/components/ui/certi
 
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
+import { supabase } from "@/lib/supabase";
 
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
@@ -132,7 +133,8 @@ export default function EnhancedDashboard() {
     dailyLimit: 5,
     chatsUsed: 0,
     remaining: 5,
-    credits: 0
+    credits: 0,
+    isPro: false
   });
   // Removed connectionStatus state
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -167,22 +169,23 @@ export default function EnhancedDashboard() {
       } 
     });
   };
-  // Fetch user stats and credits from backend
+  // Fetch user stats and credits from Supabase
   const refetchMetrics = async () => {
     try {
       if (!user) return;
-      // Use the API client methods
-      const [statsData, creditsData] = await Promise.all([
-        api.getUserStats(user.id),
-        api.getUserCredits(user.id)
+      // Fetch from Supabase directly
+      const [creditsData, profileData] = await Promise.all([
+        supabase.from('user_credits').select('credits').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('questions_asked, questions_remaining, is_pro').eq('id', user.id).single()
       ]);
       
       setMetrics((prev) => ({
         ...prev,
-        dailyLimit: statsData?.dailyLimit ?? prev.dailyLimit,
-        chatsUsed: statsData?.chatsUsed ?? prev.chatsUsed,
-        remaining: statsData?.remaining ?? prev.remaining,
-        credits: creditsData?.credits ?? prev.credits
+        dailyLimit: 5, // Assuming fixed daily limit
+        chatsUsed: profileData.data?.questions_asked ?? prev.chatsUsed,
+        remaining: profileData.data?.questions_remaining ?? prev.remaining,
+        credits: creditsData.data?.credits ?? prev.credits,
+        isPro: profileData.data?.is_pro ?? prev.isPro
       }));
     } catch (err) {
       console.error('Error fetching metrics:', err);
@@ -263,6 +266,10 @@ export default function EnhancedDashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Paid Credits:</span>
                       <span className="font-medium">{metrics.credits}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Pro Status:</span>
+                      <span className="font-medium">{metrics.isPro ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="mt-4">
                       <Button 
