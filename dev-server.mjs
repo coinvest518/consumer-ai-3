@@ -50,6 +50,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'API server is running on port 3001' });
 });
 
+// Socket.IO event emission endpoint for Vercel API functions
+app.post('/api/emit-event', (req, res) => {
+  const { event, userId, data } = req.body;
+
+  if (!event || !userId || !data) {
+    return res.status(400).json({ error: 'Missing required fields: event, userId, data' });
+  }
+
+  console.log(`[Socket.IO] Emitting event '${event}' to user ${userId}:`, data);
+
+  // Emit the event to the specific user's socket room
+  io.to(userId).emit(event, data);
+
+  res.json({ success: true, message: `Event '${event}' emitted to user ${userId}` });
+});
+
 
 
 
@@ -145,6 +161,16 @@ const io = new SocketIOServer(httpServer, {
 
 io.on('connection', (socket) => {
   console.log('Socket.IO client connected:', socket.id);
+
+  // Handle authentication and room joining
+  socket.on('authenticate', (data) => {
+    const { userId } = data;
+    if (userId) {
+      socket.join(userId);
+      console.log(`Socket ${socket.id} authenticated and joined room ${userId}`);
+    }
+  });
+
   socket.on('join', (sessionId) => {
     socket.join(sessionId);
     console.log(`Socket ${socket.id} joined session ${sessionId}`);

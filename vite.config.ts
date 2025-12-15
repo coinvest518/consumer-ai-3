@@ -58,8 +58,6 @@ export default defineConfig({
           // Vendor chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-toast'],
-          'crypto-vendor': ['ethers', 'viem', '@wagmi/core', 'wagmi'],
-          'wallet-vendor': ['@reown/appkit', '@reown/appkit-wagmi', '@walletconnect/universal-provider'],
           'animation-vendor': ['framer-motion'],
 
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],

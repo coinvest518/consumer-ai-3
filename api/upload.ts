@@ -52,6 +52,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to register upload' });
     }
 
+    // Emit Socket.IO events via HTTP request to Render service
+    const renderApiUrl = process.env.RENDER_API_URL || 'https://consumer-ai-render.onrender.com';
+    const emitEventUrl = `${renderApiUrl}/api/emit-event`;
+
+    try {
+      // Emit upload-registered event
+      await fetch(emitEventUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event: 'upload-registered',
+          userId: user.id,
+          data: {
+            filePath,
+            fileName,
+            fileSize,
+            fileType,
+            userId: user.id
+          }
+        })
+      });
+
+      // For credit reports, also emit analysis-started
+      if (filePath.includes('credit-reports')) {
+        await fetch(emitEventUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            event: 'analysis-started',
+            userId: user.id,
+            data: {
+              message: 'Credit report analysis has begun',
+              fileName,
+              userId: user.id
+            }
+          })
+        });
+      }
+    } catch (socketError) {
+      console.error('Error emitting Socket.IO events:', socketError);
+      // Don't fail the upload if Socket.IO emission fails
+    }
+
     return res.status(200).json({ success: true });
   } catch (err: any) {
     console.error('Upload registration error:', err?.message || err);

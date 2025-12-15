@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
 import { checkStorageQuota } from '@/lib/storageUtils';
 import { api } from '@/lib/api-client';
+import { useUploadProgress } from '@/hooks/useUploadProgress';
 
 interface CreditReportUploadProps {
   onAnalysisComplete: (results: CreditReportAnalysis) => void;
@@ -37,6 +38,7 @@ export interface CreditReportError {
 
 export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUploadComplete }: CreditReportUploadProps) {
   const { user } = useAuth();
+  const { uploadStatus, clearStatus } = useUploadProgress();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -44,6 +46,32 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+
+  // Listen for upload progress updates from Socket.IO
+  React.useEffect(() => {
+    if (uploadStatus.registered) {
+      console.log('File registered:', uploadStatus.registered);
+      setUploadProgress(60);
+    }
+
+    if (uploadStatus.analysisStarted) {
+      console.log('Analysis started:', uploadStatus.analysisStarted);
+      setUploadProgress(80);
+    }
+
+    if (uploadStatus.analysisComplete) {
+      console.log('Analysis complete:', uploadStatus.analysisComplete);
+      setUploadProgress(100);
+      setIsAnalyzing(false);
+      // The analysis result should be handled by the parent component
+    }
+
+    if (uploadStatus.analysisError) {
+      console.error('Analysis error:', uploadStatus.analysisError);
+      setError(uploadStatus.analysisError.error);
+      setIsAnalyzing(false);
+    }
+  }, [uploadStatus]);
 
   const acceptedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
   const maxFileSize = 10 * 1024 * 1024; // 10MB
@@ -219,6 +247,7 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
     try {
       setIsUploading(true);
       setError(null);
+      clearStatus(); // Clear previous status
       onUploadStart();
 
       // Upload file
@@ -226,9 +255,12 @@ export function CreditReportUpload({ onAnalysisComplete, onUploadStart, onUpload
       const filePath = await uploadFile(selectedFile);
       setUploadProgress(50);
 
-      // Start analysis
+      // Wait for analysis to complete via Socket.IO
       setIsAnalyzing(true);
       setUploadProgress(75);
+
+      // The analysis will be triggered by the backend and we'll get updates via Socket.IO
+      // For now, we'll still call the analysis function as fallback
       const analysis = await analyzeCreditReport(filePath);
       setUploadProgress(100);
 

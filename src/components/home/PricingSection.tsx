@@ -10,17 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import CheckoutForm from "./CheckoutForm";
 
 // This button now triggers the modal in Header via a custom event
-function BuyCreditsWithCryptoButton() {
-  return (
-    <Button
-      variant="outline"
-      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-md hover:from-purple-600 hover:to-blue-600"
-      onClick={() => window.dispatchEvent(new CustomEvent('open-crypto-modal'))}
-    >
-      Buy Credits with Crypto
-    </Button>
-  );
-}
 
 export default function PricingSection() {
   const { user } = useAuth();
@@ -127,11 +116,6 @@ export default function PricingSection() {
         </motion.div>
 
         <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-3">
-          {/* Buy with Crypto Button - visible at top of pricing section */}
-          <div className="flex justify-center mt-8 mb-4 col-span-3">
-            {/* Reown modal trigger for multi-chain wallet connect/payment */}
-            <BuyCreditsWithCryptoButton />
-          </div>
 
           {/* Starter Plan */}
           <motion.div 

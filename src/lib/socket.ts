@@ -35,4 +35,39 @@ socket.on('reconnect_error', (error) => {
   console.error('[Socket] Reconnection error:', error);
 });
 
+// Function to authenticate socket with user ID
+export function authenticateSocket(userId: string) {
+  if (socket.connected) {
+    console.log('[Socket] Authenticating with user ID:', userId);
+    socket.emit('authenticate', { userId });
+  } else {
+    // Wait for connection and then authenticate
+    socket.once('connect', () => {
+      console.log('[Socket] Authenticating with user ID:', userId);
+      socket.emit('authenticate', { userId });
+    });
+  }
+}
+
+// Upload progress event handlers
+socket.on('upload-registered', (data) => {
+  console.log('[Socket] File accepted for processing:', data);
+});
+
+socket.on('analysis-started', (data) => {
+  console.log('[Socket] Analysis in progress:', data.message);
+});
+
+socket.on('analysis-complete', (data) => {
+  console.log('[Socket] Analysis finished!', data.analysis);
+});
+
+socket.on('analysis-error', (data) => {
+  console.error('[Socket] Analysis error:', data.error);
+});
+
+socket.on('analysis-error', (data) => {
+  console.error('[Socket] Analysis failed:', data.error);
+});
+
 export default socket;

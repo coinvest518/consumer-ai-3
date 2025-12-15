@@ -244,6 +244,25 @@ export function useChat() {
         setMessages(prev => [...prev, aiMessage]);
         // After AI response, reset shouldSpeakAI to false
         setShouldSpeakAI(false);
+        
+        // Refresh chat history to ensure sync
+        try {
+          const historyResponse = await api.getChatHistory(user.id, user.id);
+          if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
+            const transformed: ChatMessage[] = historyResponse.data
+              .map((entry: any) => ({
+                id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
+                content: entry.content || entry.message || entry.response || entry.text || '',
+                role: entry.role || (entry.response ? 'assistant' : 'user'),
+                created_at: entry.created_at,
+              }))
+              .filter((msg: ChatMessage) => !!msg.content && msg.content.trim() !== '');
+            setMessages(transformed.length > 0 ? transformed : [initialMessage]);
+          }
+        } catch (refreshError) {
+          console.warn('Failed to refresh chat history after message:', refreshError);
+          // Keep the locally added messages if refresh fails
+        }
       } else {
         throw new Error(response?.error?.message || 'Invalid response from server');
       }

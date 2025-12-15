@@ -126,7 +126,7 @@ export default function EnhancedDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { toast } = useToast();
   const [metrics, setMetrics] = useState({
     dailyLimit: 5,
@@ -136,6 +136,13 @@ export default function EnhancedDashboard() {
   });
   // Removed connectionStatus state
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+
+  // Refresh metrics when user changes
+  useEffect(() => {
+    if (user?.id) {
+      refetchMetrics();
+    }
+  }, [user?.id]);
 
   // Agent click
   const handleAgentClick = (agentId: string) => {
@@ -227,7 +234,7 @@ export default function EnhancedDashboard() {
                 >
                   <Menu className="w-4 h-4" />
                   <FileText className="w-4 h-4" />
-                  Templates
+                  {isSidebarOpen ? 'Close Templates' : 'Templates'}
                 </Button>
                 <h1 className="text-3xl font-bold">Dashboard</h1>
               </div>
@@ -265,13 +272,6 @@ export default function EnhancedDashboard() {
                         disabled={isUpgradeLoading}
                       >
                         {isUpgradeLoading ? 'Processing...' : 'Get 50 More Credits ($9.99)'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold shadow-md hover:from-purple-600 hover:to-blue-600"
-                        onClick={() => window.dispatchEvent(new CustomEvent('open-crypto-modal'))}
-                      >
-                        Buy Credits with Crypto
                       </Button>
                     </div>
                   </div>

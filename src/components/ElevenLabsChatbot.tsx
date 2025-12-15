@@ -5,7 +5,7 @@ interface ElevenLabsChatbotProps {
 }
 
 declare global {
-  namespace JSX {
+  namespace React.JSX {
     interface IntrinsicElements {
       'elevenlabs-convai': {
         'agent-id': string;

@@ -54,5 +54,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to award credits', details: updateError.message });
   }
 
+  // Emit Socket.IO events via HTTP request to Render service
+  const renderApiUrl = process.env.RENDER_API_URL || 'https://consumer-ai-render.onrender.com';
+  const emitEventUrl = `${renderApiUrl}/api/emit-event`;
+
+  try {
+    // Emit credits-updated event
+    await fetch(emitEventUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event: 'credits-updated',
+        userId: userId,
+        data: {
+          creditsAwarded: 1,
+          source: 'credit-builder',
+          totalCredits: userCredit ? userCredit.credits + 1 : 1
+        }
+      })
+    });
+  } catch (socketError) {
+    console.error('Error emitting credits-updated event:', socketError);
+    // Don't fail the credit award if socket emission fails
+  }
+
   return res.status(200).json({ success: true });
 }

@@ -812,6 +812,9 @@ export default function TemplateSidebar({
       // Call backend to track usage and deduct credits
       await api.useTemplate(template.id, user.id);
 
+      // Small delay to ensure server-side processing completes
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Call the template selection handler
       onTemplateSelect(template);
 
