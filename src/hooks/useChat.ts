@@ -77,6 +77,17 @@ export function useChat() {
     const handleThinkingComplete = (data: any) => {
       console.log('[Socket] Thinking complete:', data);
       setAgentState(prev => ({ ...prev, isActive: false }));
+      
+      // Add the AI response message if provided
+      if (data && (data.response || data.message || data.content)) {
+        const aiMessage: ChatMessage = {
+          id: data.messageId || `${Date.now()}-ai`,
+          content: data.response || data.message || data.content,
+          role: "assistant",
+          created_at: data.created_at || new Date().toISOString()
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }
     };
 
     const handleThinkingError = (error: string) => {
