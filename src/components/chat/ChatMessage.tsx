@@ -1,10 +1,11 @@
-import { useState, useEffect, useContext, createContext } from "react";
+import { useState, useEffect, useContext, createContext, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { FormattedMessage } from "./FormattedMessage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bot, User, Clock, Sparkles } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import AgentIndicator from "./AgentIndicator";
+import html2pdf from 'html2pdf.js';
 
 // Global mute context for AI voice
 export const AIVoiceMuteContext = createContext<{ muted: boolean; setMuted: (m: boolean) => void }>({ muted: false, setMuted: () => {} });
@@ -49,6 +50,34 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
     // ...existing TTS logic...
   }, [message, shouldSpeakAI, muted]);
 
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
+
+  const handleExportPDF = async () => {
+    if (!bubbleRef.current) return;
+    try {
+      const element = bubbleRef.current.cloneNode(true) as HTMLElement;
+      // remove any interactive controls from cloned element
+      element.querySelectorAll('button, .no-print').forEach((el) => el.remove());
+      // create a wrapper to avoid including UI controls
+      const wrapper = document.createElement('div');
+      wrapper.style.padding = '20px';
+      wrapper.style.background = 'white';
+      wrapper.appendChild(element);
+
+      const opt = {
+        margin:       10,
+        filename:     `ai-response-${message.id || Date.now()}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      // @ts-ignore html2pdf types are global-ish
+      html2pdf().set(opt).from(wrapper).save();
+    } catch (err) {
+      console.error('PDF export failed', err);
+    }
+  };
+
   return (
     <div className={cn(
       "flex w-full gap-2 sm:gap-3 px-1 sm:px-0",
@@ -61,12 +90,24 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
       )}>
 
         {/* Message Bubble */}
-        <div className={cn(
+        <div ref={bubbleRef} className={cn(
           "relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm border text-sm sm:text-base",
           isUser
             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-auto rounded-br-sm"
             : "bg-white text-gray-800 rounded-bl-sm"
         )}>
+          {/* Export button for AI messages */}
+          {!isUser && (
+            <div className="absolute top-2 right-2">
+              <button
+                onClick={handleExportPDF}
+                className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200"
+                title="Download this response as PDF"
+              >
+                Export PDF
+              </button>
+            </div>
+          )}
           {!isUser && <AgentIndicator content={message.content} />}
           {isIntegration && (
             <div className="mb-1 flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded-full w-fit">

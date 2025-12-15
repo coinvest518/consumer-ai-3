@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
 import { ExternalLink, Scale } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeSanitize from 'rehype-sanitize';
+import ReportAnalysis from '@/components/ReportAnalysis';
 
 interface FormattedMessageProps {
   content: string;
@@ -108,8 +113,52 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
     });
   };
   
+  // detect simple markdown patterns
+  const looksLikeMarkdown = /(^#|\*\*|\*\s|\-\s|\[[^\]]+\]\([^\)]+\)|`)/m.test(parsedContent);
+
+  // If this looks like a report analysis (special headings), render with ReportAnalysis
+  const looksLikeReportAnalysis = /HIGHLIGHTED VIOLATIONS|EVIDENCE QUOTES|OUTLINED ERRORS/i.test(parsedContent);
+  if (looksLikeReportAnalysis) {
+    return <ReportAnalysis content={parsedContent} />;
+  }
+
+  // If it looks like markdown, use react-markdown for richer rendering
+  if (looksLikeMarkdown) {
+    return (
+      <div className={cn("space-y-2 ai-document prose prose-sm", isAI ? 'prose' : '')}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize]}
+          components={{
+            a: ({node, ...props}) => <a className="text-blue-600 hover:text-blue-800 underline" {...props} />, 
+            h1: ({node, ...props}) => <h1 className="text-2xl font-bold mt-3" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-xl font-semibold mt-3" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-semibold mt-2" {...props} />,
+            p: ({node, ...props}) => <p className="text-sm text-gray-800 leading-relaxed" {...props} />,
+            ul: ({node, ...props}) => <ul className="list-disc list-inside ml-0" {...props} />,
+            ol: ({node, ...props}) => <ol className="list-decimal list-inside ml-0" {...props} />,
+            code: (props) => {
+              const { inline, children, ...rest } = props as any;
+              return inline ? (
+                <code className="bg-gray-100 px-1 rounded text-xs" {...rest}>{children}</code>
+              ) : (
+                <pre className="bg-gray-900 text-white p-3 rounded overflow-x-auto text-sm"><code {...rest}>{children}</code></pre>
+              );
+            },
+            blockquote: ({node, ...props}) => <blockquote className="border-l-4 pl-4 italic text-gray-700" {...props} />,
+            table: ({node, ...props}) => <div className="overflow-x-auto"><table className="min-w-full table-auto" {...props} /></div>,
+            th: ({node, ...props}) => <th className="text-left font-semibold p-2 bg-gray-100" {...props} />,
+            td: ({node, ...props}) => <td className="p-2 border-t" {...props} />,
+          }}
+        >
+          {formatContent(parsedContent)}
+        </ReactMarkdown>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", isAI ? 'ai-document prose prose-sm' : '')}>
       <div 
         className={cn(
           "text-sm leading-relaxed whitespace-pre-wrap",
