@@ -28,7 +28,7 @@ export default async function handler(
     req: VercelRequest,
     res: VercelResponse
 ) {
-    const { userId } = req.query;
+    const userId = req.headers['user-id'] as string;
     if (!userId || typeof userId !== 'string') {
         return res.status(400).json({ error: 'Missing or invalid userId' });
     }
