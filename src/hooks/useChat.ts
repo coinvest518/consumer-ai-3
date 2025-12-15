@@ -214,7 +214,6 @@ export function useChat(onCreditsUpdate?: () => void) {
       console.error('Error checking credits:', error);
       // Allow message if credit check fails - don't block users due to API issues
     }
-    }
 
     setIsLoading(true);
     setError(null);
