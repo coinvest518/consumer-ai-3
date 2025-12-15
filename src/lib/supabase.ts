@@ -24,9 +24,9 @@ console.log('Supabase client initialized with URL:', supabaseUrl);
 export type Profile = {
   id: string;
   email: string;
+  full_name?: string;
+  avatar_url?: string;
+  is_pro: boolean;
   created_at: string;
   updated_at: string;
-  questions_asked: number;
-  questions_remaining: number;
-  is_pro: boolean;
 };

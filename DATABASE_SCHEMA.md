@@ -1,53 +1,128 @@
-# ConsumerAI Database Schema Documentation
+# Database Schema - Consumer AI Chat
 
 ## Overview
-This document describes the complete database schema for the ConsumerAI application, including all tables, relationships, indexes, and security policies.
+This document outlines the current Supabase database schema for the Consumer AI Chat application.
 
-## Database Structure
+## Tables
 
-### Core Tables
+### 1. profiles
+User profile information
+- `id` (uuid) - Primary key, references auth.users
+- `email` (text) - User's email address
+- `full_name` (text) - User's full name (optional)
+- `avatar_url` (text) - Profile picture URL (optional)
+- `is_pro` (boolean) - Whether user has pro subscription
+- `created_at` (timestamp) - Account creation timestamp
+- `updated_at` (timestamp) - Last profile update timestamp
 
-#### 1. `profiles`
-Extends Supabase's `auth.users` table with additional user information.
-- **Primary Key**: `id` (UUID, references `auth.users.id`)
-- **Fields**:
-  - `email` (TEXT)
-  - `full_name` (TEXT)
-  - `avatar_url` (TEXT)
-  - `is_pro` (BOOLEAN, default: false)
-  - `created_at` (TIMESTAMPTZ)
-  - `updated_at` (TIMESTAMPTZ)
+### 2. user_credits
+User credit balances for AI interactions
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `credits` (integer) - Current credit balance
+- `created_at` (timestamp) - Record creation timestamp
+- `updated_at` (timestamp) - Last update timestamp
 
-#### 2. `chat_history`
-Stores all chat messages between users and the AI assistant.
-- **Primary Key**: `id` (UUID)
-- **Fields**:
-  - `user_id` (UUID, references `auth.users.id`)
-  - `session_id` (TEXT)
-  - `message` (TEXT)
-  - `role` (TEXT: 'user', 'assistant', 'system')
-  - `metadata` (JSONB)
-  - `created_at` (TIMESTAMPTZ)
-- **Indexes**: `user_id`, `session_id`, `created_at`
+### 3. user_metrics
+User usage tracking and limits
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `chats_used` (integer) - Number of chats used today
+- `daily_limit` (integer) - Daily chat limit
+- `last_reset` (timestamp) - When usage was last reset
+- `created_at` (timestamp) - Record creation timestamp
+- `updated_at` (timestamp) - Last update timestamp
 
-#### 3. `user_metrics`
-Tracks user usage statistics and limits.
-- **Primary Key**: `id` (UUID)
-- **Fields**:
-  - `user_id` (UUID, references `auth.users.id`, unique)
-  - `chats_used` (INTEGER, default: 0)
-  - `daily_limit` (INTEGER, default: 50)
-  - `last_reset` (TIMESTAMPTZ)
-  - `created_at` (TIMESTAMPTZ)
-  - `updated_at` (TIMESTAMPTZ)
+### 4. chat_history
+Chat conversation history
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `session_id` (text) - Chat session identifier
+- `message` (text) - Chat message content
+- `role` (text) - Message role (user/assistant)
+- `metadata` (jsonb) - Additional message metadata
+- `created_at` (timestamp) - Message timestamp
 
-#### 4. `storage_limits`
-Defines storage tiers and limits for users.
-- **Primary Key**: `id` (UUID)
-- **Fields**:
-  - `user_id` (UUID, references `auth.users.id`, unique)
-  - `max_storage_bytes` (BIGINT, default: 104857600)
-  - `max_files` (INTEGER, default: 50)
+### 5. purchases
+Payment and subscription records
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `amount` (numeric) - Purchase amount
+- `credits` (integer) - Credits purchased
+- `stripe_session_id` (text) - Stripe payment session ID
+- `status` (varchar) - Payment status
+- `metadata` (jsonb) - Additional purchase data
+- `created_at` (timestamp) - Purchase timestamp
+- `updated_at` (timestamp) - Last update timestamp
+
+### 6. storage_limits
+User storage tier limits
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `max_storage_bytes` (bigint) - Maximum storage in bytes
+- `max_files` (integer) - Maximum number of files
+- `is_premium` (boolean) - Whether user has premium storage
+- `tier_name` (varchar) - Storage tier name
+- `created_at` (timestamp) - Record creation timestamp
+- `updated_at` (timestamp) - Last update timestamp
+
+### 7. storage_usage
+User file storage tracking
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `file_path` (text) - File path in storage
+- `file_name` (text) - Original file name
+- `file_size` (bigint) - File size in bytes
+- `file_type` (text) - MIME type
+- `storage_bucket` (text) - Storage bucket name
+- `created_at` (timestamp) - Upload timestamp
+- `deleted_at` (timestamp) - Deletion timestamp (null if active)
+
+### 8. storage_transactions
+Storage upgrade payment records
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `amount_cents` (integer) - Payment amount in cents
+- `storage_added_bytes` (bigint) - Storage added in bytes
+- `files_added` (integer) - Files added to limit
+- `stripe_session_id` (text) - Stripe payment session ID
+- `status` (varchar) - Transaction status
+- `created_at` (timestamp) - Transaction timestamp
+- `completed_at` (timestamp) - Completion timestamp
+
+### 9. report_analyses
+Credit report analysis results
+- `id` (uuid) - Primary key
+- `user_id` (uuid) - References auth.users
+- `file_path` (text) - Path to analyzed file
+- `file_name` (text) - Original file name
+- `extracted_text` (text) - Extracted text from file
+- `analysis` (jsonb) - Analysis results
+- `violations_found` (boolean) - Whether violations were found
+- `errors_found` (boolean) - Whether errors were found
+- `processed_at` (timestamp) - Analysis completion timestamp
+- `created_at` (timestamp) - Record creation timestamp
+
+## Key Relationships
+
+- All user-related tables reference `auth.users.id` via `user_id` or `id` fields
+- `storage_usage` tracks actual file storage against limits in `storage_limits`
+- `user_metrics` tracks daily usage against limits
+- `report_analyses` links to files in `storage_usage` via `file_path`
+- `purchases` and `storage_transactions` handle payment records
+
+## Row Level Security (RLS)
+
+All tables have RLS enabled with policies ensuring users can only access their own data:
+- `auth.uid() = user_id` for user-specific tables
+- `auth.uid() = id` for profiles table
+
+## Notes
+
+- All timestamps use `timestamp with time zone`
+- UUID fields are auto-generated
+- JSONB fields store flexible metadata
+- Storage limits default to 100MB and 50 files for free tier
   - `is_premium` (BOOLEAN, default: false)
   - `tier_name` (VARCHAR(50), default: 'free')
   - `created_at` (TIMESTAMPTZ)

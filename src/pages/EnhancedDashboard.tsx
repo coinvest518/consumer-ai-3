@@ -188,16 +188,17 @@ export default function EnhancedDashboard() {
       }
 
       // Fetch from Supabase directly
-      const [creditsData, profileData] = await Promise.all([
+      const [creditsData, profileData, metricsData] = await Promise.all([
         supabase.from('user_credits').select('credits').eq('user_id', user.id).single(),
-        supabase.from('profiles').select('questions_asked, questions_remaining, is_pro').eq('id', user.id).single()
+        supabase.from('profiles').select('is_pro').eq('id', user.id).single(),
+        supabase.from('user_metrics').select('chats_used, daily_limit').eq('user_id', user.id).single()
       ]);
 
       setMetrics((prev) => ({
         ...prev,
-        dailyLimit: 5, // Assuming fixed daily limit
-        chatsUsed: profileData.data?.questions_asked ?? prev.chatsUsed,
-        remaining: profileData.data?.questions_remaining ?? prev.remaining,
+        dailyLimit: metricsData.data?.daily_limit ?? 5,
+        chatsUsed: metricsData.data?.chats_used ?? prev.chatsUsed,
+        remaining: (metricsData.data?.daily_limit ?? 5) - (metricsData.data?.chats_used ?? 0),
         credits: creditsData.data?.credits ?? prev.credits,
         isPro: profileData.data?.is_pro ?? prev.isPro
       }));

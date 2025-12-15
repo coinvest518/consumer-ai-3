@@ -16,9 +16,19 @@ export interface UserMetrics {
 export interface Profile {
   id: string;
   email: string;
+  full_name?: string;
+  avatar_url?: string;
+  is_pro: boolean;
   created_at: string;
   updated_at: string;
-  questions_asked: number;
-  questions_remaining: number;
-  is_pro: boolean;
+}
+
+export interface UserMetricsData {
+  id: string;
+  user_id: string;
+  chats_used: number;
+  daily_limit: number;
+  last_reset?: string;
+  created_at: string;
+  updated_at: string;
 }
