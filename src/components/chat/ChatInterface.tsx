@@ -4,6 +4,7 @@ import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft, U
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import AgentSelector from "./AgentSelector";
 import { defaultPrompts } from "./ToolPanel";
@@ -447,7 +448,11 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                   content: message.content || (message as any).text || (message as any).message || '',
                 };
                 const shouldSpeakAI = formattedMessage.role === 'assistant' ? chatHook.shouldSpeakAI : false;
-                return <ChatMessage key={message.id || index} message={formattedMessage} shouldSpeakAI={shouldSpeakAI} />;
+                return (
+                  <ErrorBoundary key={message.id || index}>
+                    <ChatMessage message={formattedMessage} shouldSpeakAI={shouldSpeakAI} />
+                  </ErrorBoundary>
+                );
               })
             )}
 

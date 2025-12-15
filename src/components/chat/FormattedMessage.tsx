@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import ReportAnalysis from '@/components/ReportAnalysis';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 interface FormattedMessageProps {
   content: string;
@@ -24,6 +25,8 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
       </div>
     );
   }
+
+  try {
 
   // Check if the content contains tool usage indicators
   const hasToolUsage = content.includes('[Tool:') || content.includes('[Action:');
@@ -121,7 +124,11 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
   const isLongAnalysis = parsedContent.split(/\n/).length > 6 && parsedContent.length > 400;
   const looksLikeReportAnalysis = containsReportKeywords || isLongAnalysis;
   if (looksLikeReportAnalysis) {
-    return <ReportAnalysis content={parsedContent} />;
+    return (
+      <ErrorBoundary>
+        <ReportAnalysis content={parsedContent} />
+      </ErrorBoundary>
+    );
   }
 
   // If it looks like markdown, use react-markdown for richer rendering
@@ -203,4 +210,21 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
       )}
     </div>
   );
+
+  } catch (error) {
+    console.error('Error rendering FormattedMessage:', error);
+    return (
+      <div className={cn(
+        "text-sm leading-relaxed p-3 bg-red-50 border border-red-200 rounded",
+        isAI ? "text-red-700" : "text-red-600"
+      )}>
+        <p className="font-medium">Error displaying message</p>
+        <p className="text-xs mt-1">Content could not be rendered properly</p>
+        <details className="mt-2">
+          <summary className="text-xs cursor-pointer">Raw content</summary>
+          <pre className="text-xs mt-1 whitespace-pre-wrap">{content}</pre>
+        </details>
+      </div>
+    );
+  }
 }; 

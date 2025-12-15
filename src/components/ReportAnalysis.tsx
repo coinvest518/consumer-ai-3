@@ -1,6 +1,5 @@
 import React, { useRef } from 'react';
-import ReactToPrint from 'react-to-print';
-const ReactToPrintAny: any = ReactToPrint;
+import { useReactToPrint } from 'react-to-print';
 import { CheckCircle, AlertTriangle, FileText, Quote, Download } from 'lucide-react';
 
 type Sections = {
@@ -92,6 +91,11 @@ export default function ReportAnalysis({ content }: { content: string }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const s = parseAnalysis(content);
 
+  const handlePrint = useReactToPrint({
+    contentRef: ref,
+    pageStyle: "@page { size: A4; margin: 18mm } @media print { body { -webkit-print-color-adjust: exact; color-adjust: exact } }"
+  });
+
   return (
     <div className="report-analysis border rounded-lg bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between mb-3">
@@ -100,19 +104,16 @@ export default function ReportAnalysis({ content }: { content: string }) {
           <p className="text-sm text-gray-500 mt-1">AI-generated analysis — structured view for review and export.</p>
         </div>
         <div className="flex items-center gap-2">
-          <ReactToPrintAny
-            trigger={() => (
-              <button className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded text-sm">
-                <Download className="h-4 w-4" /> Download PDF
-              </button>
-            )}
-            content={() => ref.current}
-            pageStyle={"@page { size: A4; margin: 18mm } @media print { body { -webkit-print-color-adjust: exact; color-adjust: exact } }"}
-          />
+          <button 
+            onClick={handlePrint}
+            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1.5 rounded text-sm"
+          >
+            <Download className="h-4 w-4" /> Download PDF
+          </button>
         </div>
       </div>
 
-      <div ref={ref} className="space-y-5">
+      <div ref={ref as any} className="space-y-5">
         {s.highlighted && s.highlighted.length > 0 && (
           <section className="report-section">
             <h3 className="flex items-center gap-2 text-md font-semibold text-red-700"><AlertTriangle className="h-4 w-4" /> Highlighted Violations</h3>
