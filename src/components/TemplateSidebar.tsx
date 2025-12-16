@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, FileText, Layout, ChevronRight, Star, Copy, Eye, X, Scale, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import * as templateStorage from '@/lib/templateStorage';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 
 export const TEMPLATE_CATEGORIES = {
   PERSONAL_INFO: 'Personal Information',
@@ -793,7 +794,12 @@ export default function TemplateSidebar({
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  const handleUseTemplate = async (template: Template) => {
+  // Request template use (shows confirmation dialog)
+  const [confirmTemplate, setConfirmTemplate] = useState<Template | null>(null);
+  const [confirmUserCredits, setConfirmUserCredits] = useState<number | null>(null);
+  const [confirmCreditsLoading, setConfirmCreditsLoading] = useState(false);
+
+  const handleRequestUseTemplate = (template: Template) => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -803,12 +809,42 @@ export default function TemplateSidebar({
       return;
     }
 
-    if (userCredits < template.creditCost) {
-      toast({
-        title: "Insufficient Credits",
-        description: `This template requires ${template.creditCost} credits. You have ${userCredits} credits remaining.`,
-        variant: "destructive"
+    setConfirmTemplate(template);
+  };
+
+  // When the confirm dialog opens, fetch latest credits
+  useEffect(() => {
+    if (!confirmTemplate || !user?.id) {
+      setConfirmUserCredits(null);
+      setConfirmCreditsLoading(false);
+      return;
+    }
+    let mounted = true;
+    setConfirmCreditsLoading(true);
+    api.getUserCredits(user.id)
+      .then((resp: any) => {
+        if (!mounted) return;
+        const credits = resp?.credits ?? null;
+        setConfirmUserCredits(credits);
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch user credits for dialog:', err);
+        setConfirmUserCredits(null);
+      })
+      .finally(() => {
+        if (mounted) setConfirmCreditsLoading(false);
       });
+
+    return () => { mounted = false; }
+  }, [confirmTemplate, user?.id]);
+
+  // Confirmed use -> actually perform API calls and processing
+  const confirmUseTemplate = async (template: Template | null) => {
+    if (!template || !user) return;
+
+    // Prevent confirming if credits state shows insufficient
+    if (typeof confirmUserCredits === 'number' && confirmUserCredits < template.creditCost) {
+      toast({ title: 'Insufficient Credits', description: `You have ${confirmUserCredits} credits but this costs ${template.creditCost}.`, variant: 'destructive' });
       return;
     }
 
@@ -860,6 +896,8 @@ export default function TemplateSidebar({
       });
     } finally {
       removeProcessing(template.id);
+      setConfirmTemplate(null);
+      setConfirmUserCredits(null);
     }
   };
 
@@ -1049,7 +1087,7 @@ export default function TemplateSidebar({
 
               {/* Use Template Button */}
               <Button
-                onClick={() => handleUseTemplate(template)}
+                onClick={() => handleRequestUseTemplate(template)}
                 disabled={userCredits < template.creditCost || isProcessingFor(template.id)}
                 className="w-full mt-3 text-sm"
                 size="sm"
@@ -1142,7 +1180,7 @@ export default function TemplateSidebar({
               </Button>
               <Button
                 onClick={() => {
-                  handleUseTemplate(previewTemplate);
+                  setConfirmTemplate(previewTemplate);
                   setPreviewTemplate(null);
                 }}
                 disabled={userCredits < previewTemplate.creditCost || isProcessingFor(previewTemplate.id)}
@@ -1156,6 +1194,40 @@ export default function TemplateSidebar({
           </div>
         </div>
       )}
+
+      {/* Confirm Use Template Dialog */}
+      <AlertDialog open={!!confirmTemplate} onOpenChange={(open) => { if (!open) setConfirmTemplate(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Use Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmTemplate ? (
+                <>
+                  "{confirmTemplate.name}" will use <strong>{confirmTemplate.creditCost}</strong> credits.
+                  <div className="mt-2 text-sm text-gray-700">
+                    {confirmCreditsLoading ? 'Checking your credits...' : (
+                      confirmUserCredits !== null ? (
+                        confirmUserCredits >= confirmTemplate.creditCost ? (
+                          <span className="text-sm text-green-700">You have {confirmUserCredits} credits available.</span>
+                        ) : (
+                          <span className="text-sm text-red-700">You have {confirmUserCredits} credits — insufficient to proceed.</span>
+                        )
+                      ) : (
+                        <span className="text-sm text-gray-700">Unable to fetch credits.</span>
+                      )
+                    )}
+                  </div>
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="pt-2" />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => confirmUseTemplate(confirmTemplate)} disabled={confirmUserCredits !== null && confirmTemplate !== null && confirmUserCredits < confirmTemplate.creditCost}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

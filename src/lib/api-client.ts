@@ -165,6 +165,12 @@ export const api = {
     return fetchApi('templates/list', {}, userId);
   },
 
+  // Get user credits
+  getUserCredits: (userId: string) => {
+    if (!userId) throw new Error('User ID is required for getting user credits');
+    return fetchApi('user/credits', {}, userId);
+  },
+
   deleteSavedTemplate: (templateId: string, userId: string) => {
     if (!userId) throw new Error('User ID is required for deleting a saved template');
     return fetchApi('templates/delete', {

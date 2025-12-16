@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
+import { api } from '@/lib/api-client';
 import { useAuth } from "@/hooks/useAuth";
 import { Send, Loader2, Bot, User, Sparkles, X, Mic, Brain, Menu, ChevronLeft, Upload, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ChatMessage from "./ChatMessage";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { ANALYSIS_CREDIT_COSTS } from '@/lib/credits';
 
 import AgentSelector from "./AgentSelector";
 import { defaultPrompts } from "./ToolPanel";
@@ -39,6 +42,40 @@ export default function ChatInterface(props: ChatInterfaceProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Analysis type for uploads (report by default)
+  const [analysisType, setAnalysisType] = useState<'report'|'dispute_letter'|'cfpb_complaint'|'debt_collector_letter'>('report');
+
+  // Pending analysis waiting for user confirmation (to avoid auto-deducting credits)
+  const [pendingAnalysis, setPendingAnalysis] = useState<null | { filePath: string; message: string; type: string }>(null);
+  const [pendingUserCredits, setPendingUserCredits] = useState<number | null>(null);
+  const [pendingCreditsLoading, setPendingCreditsLoading] = useState(false);
+
+  // When the pending analysis dialog opens, fetch latest credits
+  useEffect(() => {
+    if (!pendingAnalysis || !user?.id) {
+      setPendingUserCredits(null);
+      setPendingCreditsLoading(false);
+      return;
+    }
+    let mounted = true;
+    setPendingCreditsLoading(true);
+    api.getUserCredits(user.id)
+      .then((resp: any) => {
+        if (!mounted) return;
+        const credits = resp?.credits ?? null;
+        setPendingUserCredits(credits);
+      })
+      .catch((err: any) => {
+        console.warn('Failed to fetch user credits for pending analysis dialog:', err);
+        setPendingUserCredits(null);
+      })
+      .finally(() => {
+        if (mounted) setPendingCreditsLoading(false);
+      });
+
+    return () => { mounted = false; }
+  }, [pendingAnalysis, user?.id]);
 
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -133,7 +170,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
     setInputValue(prompt);
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File, analysisTypeParam: string = 'report') => {
     if (!user?.id) return;
 
     try {
@@ -179,9 +216,25 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         throw new Error(body?.error || 'Failed to register file on server');
       }
 
-      // Automatically trigger report agent with the file
-      const agentMessage = `[Agent Request: report] Please analyze this credit report file: ${filePath}. The file has been uploaded and is ready for analysis.`;
-      
+      // Create agent message appropriate to analysis type
+      const typeToAgentMap: Record<string,string> = {
+        report: 'report',
+        dispute_letter: 'letter',
+        cfpb_complaint: 'letter',
+        debt_collector_letter: 'letter'
+      };
+
+      const agentType = typeToAgentMap[analysisTypeParam] || 'report';
+      const agentMessage = `[Agent Request: ${agentType}] Please analyze this file for ${analysisTypeParam.replace(/_/g, ' ')}: ${filePath}. The file has been uploaded and is ready for analysis.`;
+
+      // If the type is not a plain report, ask the user to confirm before sending the request (prevents accidental credit usage)
+      if (analysisTypeParam !== 'report') {
+        // Store pending action and show inline confirmation UI
+        setPendingAnalysis({ filePath, message: agentMessage, type: analysisTypeParam });
+        setUploadedFile(null);
+        return;
+      }
+
       await sendMessage(agentMessage);
       setUploadedFile(null);
 
@@ -209,7 +262,7 @@ export default function ChatInterface(props: ChatInterfaceProps) {
         return;
       }
       
-      handleFileUpload(file);
+      handleFileUpload(file, analysisType);
     }
     // Reset input
     if (fileInputRef.current) {
@@ -494,9 +547,23 @@ export default function ChatInterface(props: ChatInterfaceProps) {
                     isListening && "animate-pulse"
                   )} />
                 </button>
+
+                {/* Analysis type selector */}
+                <select
+                  value={analysisType}
+                  onChange={(e) => setAnalysisType(e.target.value as any)}
+                  title="Select analysis type"
+                  className="hidden sm:inline-block bg-white border rounded px-2 py-1 text-xs mr-2"
+                >
+                  <option value="report">Report</option>
+                  <option value="dispute_letter">Dispute Letter</option>
+                  <option value="cfpb_complaint">CFPB Complaint</option>
+                  <option value="debt_collector_letter">Debt Collector Letter</option>
+                </select>
+
                 <button
                   type="button"
-                  aria-label="Upload credit report"
+                  aria-label="Upload file for analysis"
                   onClick={() => fileInputRef.current?.click()}
                   className="bg-gray-100 rounded-full p-1.5 sm:p-2 hover:bg-gray-200 touch-manipulation"
                   disabled={isLoading || isUploading}
@@ -534,9 +601,69 @@ export default function ChatInterface(props: ChatInterfaceProps) {
           
           {isUploading && (
             <div className="mt-2 sm:mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" /> Uploading credit report...
+              <Loader2 className="h-4 w-4 animate-spin" /> Uploading file for {analysisType.replace(/_/g, ' ')}...
             </div>
           )}
+
+          {/* Pending confirmation for non-report analyses (AlertDialog) */}
+          <AlertDialog open={!!pendingAnalysis} onOpenChange={(open) => { if (!open) setPendingAnalysis(null); }}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm {pendingAnalysis?.type.replace(/_/g, ' ')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will generate a {pendingAnalysis?.type.replace(/_/g, ' ')} using credits. Cost: <strong>{pendingAnalysis ? (ANALYSIS_CREDIT_COSTS[pendingAnalysis.type] ?? 0) : 0}</strong> credits.
+                  <div className="mt-2 text-sm text-gray-700">
+                    {pendingCreditsLoading ? 'Checking your credits...' : (
+                      pendingUserCredits !== null ? (
+                        pendingUserCredits >= (pendingAnalysis ? (ANALYSIS_CREDIT_COSTS[pendingAnalysis.type] ?? 0) : 0) ? (
+                          <span className="text-sm text-green-700">You have {pendingUserCredits} credits available.</span>
+                        ) : (
+                          <span className="text-sm text-red-700">You have {pendingUserCredits} credits — insufficient to proceed.</span>
+                        )
+                      ) : (
+                        <span className="text-sm text-gray-700">Unable to fetch credits.</span>
+                      )
+                    )}
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={async () => {
+                  // remove file from storage when canceling
+                  if (pendingAnalysis) {
+                    try {
+                      const { error } = await supabase.storage.from('users-file-storage').remove([pendingAnalysis.filePath]);
+                      if (error) console.warn('Failed to remove file after cancel:', error);
+                    } catch (err) {
+                      console.warn('Error removing file during cancel:', err);
+                    }
+                  }
+                  setPendingAnalysis(null);
+                }}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={async () => {
+                  if (!pendingAnalysis) return;
+                  // prevent confirm when insufficient credits
+                  const cost = pendingAnalysis ? (ANALYSIS_CREDIT_COSTS[pendingAnalysis.type] ?? 0) : 0;
+                  if (pendingUserCredits !== null && pendingUserCredits < cost) {
+                    // show toast or message
+                    alert('Insufficient credits to perform this action.');
+                    return;
+                  }
+                  try {
+                    setPendingAnalysis(null);
+                    await sendMessage(pendingAnalysis.message);
+                  } catch (err) {
+                    console.error('Failed to send pending analysis:', err);
+                  }
+                }} disabled={pendingUserCredits !== null && pendingAnalysis !== null && pendingUserCredits < (pendingAnalysis ? (ANALYSIS_CREDIT_COSTS[pendingAnalysis.type] ?? 0) : 0)}>
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           
           {isListening && (
             <div className="mt-2 sm:mt-3 text-blue-600 text-sm font-medium flex items-center gap-2">
