@@ -121,6 +121,23 @@
   }
 }
 
+/* Dashboard specific styles */
+.dispute-status-pending {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.dispute-status-sent {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.dispute-status-resolved {
+  @apply bg-green-100 text-green-800;
+}
+
+.dispute-status-escalated {
+  @apply bg-red-100 text-red-800;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -160,8 +177,16 @@
     input[type="text"],
     input[type="email"],
     input[type="password"],
+    input[type="date"],
     textarea {
       font-size: 16px;
+    }
+  }
+  
+  /* Tab responsive */
+  @media screen and (max-width: 640px) {
+    .dashboard-tabs {
+      font-size: 0.875rem;
     }
   }
 }

@@ -2,17 +2,24 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  Bot, Search, Calendar, FileText, Scale, Mail, Package, 
-  MessageSquare, BarChart3, Clock, RefreshCw, Menu, CheckCircle, AlertCircle, Loader2
+  Calendar as CalendarIcon, FileText, Package, 
+  Clock, RefreshCw, Menu, Plus, Building2, Phone, MapPin, Mail as MailIcon, BookOpen, Scale, TrendingUp, Gavel, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AgentCard } from "@/components/ui/agent-card";
 import { CertifiedMailTimeline, CertifiedMailEvent } from "@/components/ui/certified-mail-timeline";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { supabase } from "@/lib/supabase";
+import { disputesApi, certifiedMailApi, complaintsApi, calendarEventsApi, Dispute, CertifiedMail, Complaint, CalendarEvent } from "@/lib/dashboard-api";
 
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
@@ -21,70 +28,82 @@ import { useChatContext } from "../contexts/ChatContext";
 import { useToast } from "@/hooks/use-toast";
 import * as templateStorage from '@/lib/templateStorage';
 
-// Sample data for demonstration
-// AI Agents
-const aiAgents = [
-  {
-    id: "search",
-    name: "Search Agent",
-    icon: Search,
-    description: "AI-powered search for consumer rights and laws.",
-    capabilities: ["Web Search", "Legal Reasoning"],
-    usageCount: 12
-  },
-  {
-    id: "report",
-    name: "Report Analysis",
-    icon: FileText,
-    description: "AI analyzes credit reports for errors and violations.",
-    capabilities: ["Error Detection", "Legal Analysis"],
-    usageCount: 3
-  },
-  {
-    id: "letter",
-    name: "Letter Generator",
-    icon: FileText,
-    description: "AI generates customized dispute letters for credit bureaus.",
-    capabilities: ["Templates", "Customization"],
-    usageCount: 7
-  }
+// Credit Bureaus Contact Info
+const creditBureaus = [
+  { name: "Equifax", phone: "1-800-685-1111", address: "P.O. Box 740241, Atlanta, GA 30374", website: "equifax.com" },
+  { name: "Experian", phone: "1-888-397-3742", address: "P.O. Box 4500, Allen, TX 75013", website: "experian.com" },
+  { name: "TransUnion", phone: "1-800-916-8800", address: "P.O. Box 2000, Chester, PA 19016", website: "transunion.com" }
 ];
 
-// Tools & Integrations
-const integrations = [
-  {
-    id: "calendar",
-    name: "Calendar Integration",
-    icon: Calendar,
-    description: "Set reminders for deadlines. This is a productivity tool, not an AI agent.",
-    capabilities: ["Reminders", "Notifications"],
-    usageCount: 5
-  },
-  {
-    id: "legal",
-    name: "Legal Database",
-    icon: Scale,
-    description: "Access legal information and resources. This is a reference tool, not an AI agent.",
-    capabilities: ["FCRA", "FDCPA", "Case Law"],
-    usageCount: 4
-  },
-  {
-    id: "email",
-    name: "Email Notifications",
-    icon: Mail,
-    description: "Send and receive notifications. This is an integration for reminders and updates.",
-    capabilities: ["Scheduling", "Templates"],
-    usageCount: 2
-  },
-  {
-    id: "tracking",
-    name: "Certified Mail Timeline",
-    icon: Package,
-    description: "Log certified mail dates and track legal deadlines. Educational tool for consumer law compliance.",
-    capabilities: ["Legal Deadlines", "FCRA/FDCPA Compliance"],
-    usageCount: 6
-  }
+// Secondary Bureaus
+const secondaryBureaus = [
+  { name: "Innovis", phone: "1-800-540-2505", website: "innovis.com" },
+  { name: "ChexSystems", phone: "1-800-428-9623", website: "chexsystems.com" },
+  { name: "LexisNexis", phone: "1-866-897-8126", website: "lexisnexis.com" }
 ];
+
+// Simple Calendar Component
+const SimpleCalendar = ({ selectedDate, onSelectDate, onDateClick }: { selectedDate?: Date; onSelectDate?: (date: Date) => void; onDateClick?: (date: Date) => void }) => {
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const year = currentMonth.getFullYear();
+  const month = currentMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const days: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+
+  return (
+    <div className="border rounded-md p-4">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => setCurrentMonth(new Date(year, month - 1))} className="p-1 hover:bg-gray-100 rounded">&lt;</button>
+        <div className="font-medium">{monthNames[month]} {year}</div>
+        <button onClick={() => setCurrentMonth(new Date(year, month + 1))} className="p-1 hover:bg-gray-100 rounded">&gt;</button>
+      </div>
+      <table className="w-full" style={{ tableLayout: 'fixed' }}>
+        <thead>
+          <tr>
+            {dayNames.map(d => <th key={d} className="text-center text-sm font-medium text-gray-500 pb-2">{d}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: Math.ceil(days.length / 7) }).map((_, weekIdx) => (
+            <tr key={weekIdx}>
+              {Array.from({ length: 7 }).map((_, dayIdx) => {
+                const day = days[weekIdx * 7 + dayIdx];
+                const isToday = day && new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year;
+                const isSelected = day && selectedDate && selectedDate.getDate() === day && selectedDate.getMonth() === month && selectedDate.getFullYear() === year;
+                return (
+                  <td key={dayIdx} className="text-center p-1">
+                    {day ? (
+                      <button
+                        onClick={() => {
+                          const clickedDate = new Date(year, month, day);
+                          onSelectDate?.(clickedDate);
+                          onDateClick?.(clickedDate);
+                        }}
+                        className={`w-9 h-9 rounded-md hover:bg-gray-100 ${
+                          isToday ? 'bg-blue-100 text-blue-600 font-semibold' : ''
+                        } ${
+                          isSelected ? 'bg-blue-600 text-white' : ''
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ) : null}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
 
 // Sample certified mail data
 const sampleMailEvents: CertifiedMailEvent[] = [
@@ -131,14 +150,46 @@ export default function EnhancedDashboard() {
     isPro: false
   });
   // Removed connectionStatus state
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [certifiedMail, setCertifiedMail] = useState<CertifiedMail[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    event_type: 'deadline' as 'deadline' | 'mailed' | 'delivered' | 'reminder' | 'response',
+    related_type: '',
+    related_id: ''
+  });
 
-  // Refresh metrics when user changes
+  // Refresh metrics and load data when user changes
   useEffect(() => {
     if (user?.id) {
       refetchMetrics();
+      loadDashboardData();
     }
   }, [user?.id]);
+
+  // Load all dashboard data
+  const loadDashboardData = async () => {
+    if (!user?.id) return;
+    try {
+      const [disputesData, mailData, complaintsData, eventsData] = await Promise.all([
+        disputesApi.getAll(user.id),
+        certifiedMailApi.getAll(user.id),
+        complaintsApi.getAll(user.id),
+        calendarEventsApi.getAll(user.id)
+      ]);
+      setDisputes(disputesData);
+      setCertifiedMail(mailData);
+      setComplaints(complaintsData);
+      setCalendarEvents(eventsData);
+    } catch (err) {
+      console.error('Error loading dashboard data:', err);
+    }
+  };
 
   // Saved templates (client-side store via localStorage)
   const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
@@ -179,11 +230,90 @@ export default function EnhancedDashboard() {
 
   }, [user?.id, metrics]);
 
-  // Agent click
-  const handleAgentClick = (agentId: string) => {
-    setSelectedAgent(agentId === selectedAgent ? null : agentId);
-    if (agentId === "chat") {
-      navigate("/chat");
+  // Add new dispute
+  const handleAddDispute = async () => {
+    if (!user?.id) return;
+    try {
+      const newDispute = await disputesApi.create({
+        user_id: user.id,
+        title: "New Dispute",
+        bureau: "Equifax",
+        status: "pending",
+        date_sent: new Date().toISOString()
+      });
+      setDisputes([newDispute, ...disputes]);
+      toast({ title: 'Success', description: 'New dispute created' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to create dispute', variant: 'destructive' });
+    }
+  };
+
+  // Add certified mail
+  const handleAddMail = async (trackingNumber: string, recipient: string, dateMailed: string) => {
+    if (!user?.id) return;
+    try {
+      const newMail = await certifiedMailApi.create({
+        user_id: user.id,
+        tracking_number: trackingNumber,
+        recipient,
+        date_mailed: dateMailed,
+        status: 'mailed'
+      });
+      setCertifiedMail([newMail, ...certifiedMail]);
+      toast({ title: 'Success', description: 'Mail tracking added' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to add tracking', variant: 'destructive' });
+    }
+  };
+
+  // Add complaint
+  const handleAddComplaint = async (agency: string, complaintNumber: string, dateFiled: string) => {
+    if (!user?.id) return;
+    try {
+      const newComplaint = await complaintsApi.create({
+        user_id: user.id,
+        agency,
+        complaint_number: complaintNumber,
+        date_filed: dateFiled,
+        status: 'filed',
+        response_received: false
+      });
+      setComplaints([newComplaint, ...complaints]);
+      toast({ title: 'Success', description: 'Complaint added' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to add complaint', variant: 'destructive' });
+    }
+  };
+
+  // Handle calendar date click
+  const handleCalendarDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setShowEventModal(true);
+  };
+
+  // Save calendar event
+  const handleSaveEvent = async () => {
+    if (!user?.id || !selectedDate || !newEvent.title) {
+      toast({ title: 'Error', description: 'Please fill in required fields', variant: 'destructive' });
+      return;
+    }
+    try {
+      const event = await calendarEventsApi.create({
+        user_id: user.id,
+        title: newEvent.title,
+        description: newEvent.description,
+        event_date: selectedDate.toISOString(),
+        event_type: newEvent.event_type,
+        related_id: newEvent.related_id || undefined,
+        related_type: newEvent.related_type || undefined,
+        is_completed: false
+      });
+      setCalendarEvents([event, ...calendarEvents]);
+      setShowEventModal(false);
+      setNewEvent({ title: '', description: '', event_type: 'deadline', related_type: '', related_id: '' });
+      toast({ title: 'Success', description: 'Event added to calendar' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to add event', variant: 'destructive' });
     }
   };
 
@@ -375,26 +505,416 @@ export default function EnhancedDashboard() {
               </Card>
             </div>
 
-            {/* AI Agents Section */}
-            <section className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">AI Agents</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {aiAgents.map(agent => (
-                  <AgentCard
-                    key={agent.id}
-                    name={agent.name}
-                    icon={agent.icon}
-                    description={agent.description}
-                    capabilities={agent.capabilities}
-                    usageCount={agent.usageCount}
-                    onClick={() => handleAgentClick(agent.id)}
-                    isActive={selectedAgent === agent.id}
-                  />
-                ))}
-              </div>
-            </section>
+            {/* Main Dashboard Tabs */}
+            <Tabs defaultValue="calendar" className="mb-8">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                <TabsTrigger value="disputes">Disputes</TabsTrigger>
+                <TabsTrigger value="tracking">Mail Tracking</TabsTrigger>
+                <TabsTrigger value="complaints">Complaints</TabsTrigger>
+                <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                <TabsTrigger value="shop">Shop</TabsTrigger>
+              </TabsList>
+
+              {/* Calendar Tab */}
+              <TabsContent value="calendar" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Dispute Calendar & Deadlines</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <SimpleCalendar
+                          selectedDate={selectedDate}
+                          onSelectDate={setSelectedDate}
+                          onDateClick={handleCalendarDateClick}
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold mb-4">Upcoming Deadlines</h3>
+                        <div className="space-y-3">
+                          {calendarEvents.length === 0 ? (
+                            <p className="text-gray-500 text-sm">No upcoming deadlines</p>
+                          ) : (
+                            calendarEvents.slice(0, 5).map(event => (
+                              <div key={event.id} className="p-3 border rounded-lg">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Clock className="w-4 h-4 text-blue-600" />
+                                  <span className="font-medium text-sm">{event.title}</span>
+                                </div>
+                                <p className="text-xs text-gray-500">{new Date(event.event_date).toLocaleDateString()}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Disputes Tab */}
+              <TabsContent value="disputes" className="mt-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Dispute Letters & Templates</CardTitle>
+                    <Button size="sm" onClick={handleAddDispute}>
+                      <Plus className="w-4 h-4 mr-2" /> New Dispute
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {disputes.length === 0 ? (
+                        <p className="text-gray-500 text-center py-8">No disputes yet. Click "New Dispute" to start.</p>
+                      ) : (
+                        disputes.map(dispute => (
+                          <div key={dispute.id} className="p-4 border rounded-lg">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold">{dispute.title}</h4>
+                                <p className="text-sm text-gray-600">Bureau: {dispute.bureau}</p>
+                                <p className="text-xs text-gray-500">Sent: {dispute.date_sent ? new Date(dispute.date_sent).toLocaleDateString() : 'Not sent'}</p>
+                              </div>
+                              <span className={`px-2 py-1 text-xs rounded dispute-status-${dispute.status}`}>{dispute.status}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Mail Tracking Tab */}
+              <TabsContent value="tracking" className="mt-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Certified Mail Tracking</CardTitle>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-2" /> Add Tracking Number
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid gap-4">
+                        <div>
+                          <Label>Tracking Number</Label>
+                          <Input placeholder="Enter USPS tracking number" />
+                        </div>
+                        <div>
+                          <Label>Date Mailed</Label>
+                          <Input type="date" />
+                        </div>
+                        <div>
+                          <Label>Recipient</Label>
+                          <Input placeholder="e.g., Equifax" />
+                        </div>
+                      </div>
+                      <CertifiedMailTimeline
+                        events={sampleMailEvents}
+                        mailDescription="Credit Dispute Letter"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Complaints Tab */}
+              <TabsContent value="complaints" className="mt-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Complaint Tracking</CardTitle>
+                    <Button size="sm">
+                      <Plus className="w-4 h-4 mr-2" /> New Complaint
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-gray-500 text-center py-8">Track complaints filed with CFPB, FTC, and state agencies.</p>
+                      <div className="grid gap-4">
+                        <div>
+                          <Label>Agency</Label>
+                          <Input placeholder="e.g., CFPB, FTC, State AG" />
+                        </div>
+                        <div>
+                          <Label>Complaint Number</Label>
+                          <Input placeholder="Reference number" />
+                        </div>
+                        <div>
+                          <Label>Date Filed</Label>
+                          <Input type="date" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Shop Tab */}
+              <TabsContent value="shop" className="mt-6">
+                <div className="space-y-6">
+                  {/* View All Resources Banner */}
+                  <Card className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                          <h2 className="text-2xl font-bold mb-2">Browse All Resources</h2>
+                          <p className="text-blue-100">Explore our complete collection of templates, guides, and legal resources</p>
+                        </div>
+                        <Button 
+                          size="lg"
+                          className="bg-white text-blue-600 hover:bg-blue-50 font-bold whitespace-nowrap"
+                          onClick={() => window.open('https://buymeacoffee.com/coinvest/extras', '_blank')}
+                        >
+                          View All Resources <ExternalLink className="w-4 h-4 ml-2" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Featured Resources & Templates</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* Free Resource */}
+                        <div className="flex flex-col h-full p-5 border-2 border-green-200 rounded-lg bg-green-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-green-600 rounded-full">
+                            <Building2 className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-green-600 text-white text-xs font-bold rounded">FREE</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">Secondary Credit Bureaus List</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Complete contact info for all secondary credit reporting agencies. Essential for monitoring.
+                          </p>
+                          <Button 
+                            className="w-full mt-auto"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/440819', '_blank')}
+                          >
+                            Get Free List
+                          </Button>
+                        </div>
+
+                        {/* Debt Validation Letter */}
+                        <div className="flex flex-col h-full p-5 border-2 border-blue-200 rounded-lg bg-blue-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-blue-600 rounded-full">
+                            <FileText className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">$5.00</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">Debt Validation Letter</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Professional template in DOC & PDF. Ready to customize and send. FDCPA compliant.
+                          </p>
+                          <Button 
+                            className="w-full mt-auto"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/382307', '_blank')}
+                          >
+                            Download Template
+                          </Button>
+                        </div>
+
+                        {/* How to Sue Debt Collectors */}
+                        <div className="flex flex-col h-full p-5 border-2 border-purple-200 rounded-lg bg-purple-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-purple-600 rounded-full">
+                            <Scale className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-purple-600 text-white text-xs font-bold rounded">$125</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">How to Sue Debt Collectors</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Complete eBook with legal drafts and laws. Step-by-step guide to taking action.
+                          </p>
+                          <Button 
+                            className="w-full mt-auto"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/383675', '_blank')}
+                          >
+                            Get eBook
+                          </Button>
+                        </div>
+
+                        {/* Prove Credit Violation */}
+                        <div className="flex flex-col h-full p-5 border-2 border-orange-200 rounded-lg bg-orange-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-orange-600 rounded-full">
+                            <BookOpen className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-orange-600 text-white text-xs font-bold rounded">PAID</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">Prove Credit/Debt Violation</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Automatic win strategy for $1000. Learn how to prove violations and win your case.
+                          </p>
+                          <Button 
+                            className="w-full mt-auto"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/432485', '_blank')}
+                          >
+                            Learn More
+                          </Button>
+                        </div>
+
+                        {/* Credit Repair Planner */}
+                        <div className="flex flex-col h-full p-5 border-2 border-indigo-200 rounded-lg bg-indigo-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-indigo-600 rounded-full">
+                            <TrendingUp className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-indigo-600 text-white text-xs font-bold rounded">PAID</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">Ultimate Credit Repair Planner</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Get your score to 700+. PDF/Digital downloadable planner with proven strategies.
+                          </p>
+                          <Button 
+                            className="w-full mt-auto"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/469931', '_blank')}
+                          >
+                            Get Planner
+                          </Button>
+                        </div>
+
+                        {/* FDCPA Lawsuit Drafts */}
+                        <div className="flex flex-col h-full p-5 border-2 border-red-200 rounded-lg bg-red-50">
+                          <div className="flex items-center justify-center w-12 h-12 mb-3 bg-red-600 rounded-full">
+                            <Gavel className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">$50</span>
+                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded">49 Left</span>
+                          </div>
+                          <h3 className="font-bold text-base mb-2 min-h-[3rem] flex items-center">FDCPA Lawsuit Drafts + Consultation</h3>
+                          <p className="text-sm text-gray-600 mb-4 flex-grow min-h-[4.5rem]">
+                            Ready-to-file lawsuit drafts, intent to sue letter, and FREE expert consultation. Stop harassment!
+                          </p>
+                          <Button 
+                            className="w-full mt-auto bg-red-600 hover:bg-red-700"
+                            onClick={() => window.open('https://buymeacoffee.com/coinvest/e/383669', '_blank')}
+                          >
+                            Get Lawsuit Kit
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Quick Access</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-4 gap-4">
+                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={() => {
+                          const element = document.querySelector('[value="contacts"]');
+                          if (element) (element as HTMLElement).click();
+                        }}>
+                          <Building2 className="w-6 h-6" />
+                          <span className="font-semibold text-sm">All Bureaus</span>
+                          <span className="text-xs text-gray-500">Contact info</span>
+                        </Button>
+                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={() => {
+                          const element = document.querySelector('[value="disputes"]');
+                          if (element) (element as HTMLElement).click();
+                        }}>
+                          <FileText className="w-6 h-6" />
+                          <span className="font-semibold text-sm">My Disputes</span>
+                          <span className="text-xs text-gray-500">Track disputes</span>
+                        </Button>
+                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={() => {
+                          const element = document.querySelector('[value="tracking"]');
+                          if (element) (element as HTMLElement).click();
+                        }}>
+                          <Package className="w-6 h-6" />
+                          <span className="font-semibold text-sm">Mail Tracking</span>
+                          <span className="text-xs text-gray-500">USPS certified</span>
+                        </Button>
+                        <Button variant="outline" className="h-auto py-4 flex flex-col gap-2" onClick={() => navigate('/chat')}>
+                          <Plus className="w-6 h-6" />
+                          <span className="font-semibold text-sm">New Chat</span>
+                          <span className="text-xs text-gray-500">Ask AI</span>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Contacts Tab */}
+              <TabsContent value="contacts" className="mt-6">
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Credit Bureaus</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {creditBureaus.map(bureau => (
+                          <div key={bureau.name} className="p-4 border rounded-lg">
+                            <h4 className="font-semibold mb-3">{bureau.name}</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-start gap-2">
+                                <Phone className="w-4 h-4 mt-0.5 text-gray-500" />
+                                <span>{bureau.phone}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <MapPin className="w-4 h-4 mt-0.5 text-gray-500" />
+                                <span className="text-xs">{bureau.address}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Building2 className="w-4 h-4 mt-0.5 text-gray-500" />
+                                <span>{bureau.website}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Secondary Bureaus</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {secondaryBureaus.map(bureau => (
+                          <div key={bureau.name} className="p-4 border rounded-lg">
+                            <h4 className="font-semibold mb-3">{bureau.name}</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-start gap-2">
+                                <Phone className="w-4 h-4 mt-0.5 text-gray-500" />
+                                <span>{bureau.phone}</span>
+                              </div>
+                              <div className="flex items-start gap-2">
+                                <Building2 className="w-4 h-4 mt-0.5 text-gray-500" />
+                                <span>{bureau.website}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Debt Collector Database</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <Input placeholder="Search debt collector by name..." />
+                        <p className="text-sm text-gray-500">Search for contact information and complaint history of debt collectors.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
 
             {/* My Templates (saved by user) */}
             <section className="mb-8">
@@ -451,83 +971,118 @@ export default function EnhancedDashboard() {
               )}
             </section>
 
-            {/* Tools & Integrations Section */}
+
+
+            {/* Quick Actions */}
             <section className="mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Tools & Integrations</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {integrations.map(tool => (
-                  <AgentCard
-                    key={tool.id}
-                    name={tool.name}
-                    icon={tool.icon}
-                    description={tool.description}
-                    capabilities={tool.capabilities}
-                    usageCount={tool.usageCount}
-                    onClick={() => handleAgentClick(tool.id)}
-                    isActive={selectedAgent === tool.id}
-                  />
-                ))}
+              <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-20 flex flex-col gap-2" onClick={() => navigate('/chat')}>
+                  <FileText className="w-6 h-6" />
+                  <span className="text-sm">New Dispute</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <Package className="w-6 h-6" />
+                  <span className="text-sm">Track Mail</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <CalendarIcon className="w-6 h-6" />
+                  <span className="text-sm">Set Reminder</span>
+                </Button>
+                <Button variant="outline" className="h-20 flex flex-col gap-2">
+                  <MailIcon className="w-6 h-6" />
+                  <span className="text-sm">File Complaint</span>
+                </Button>
               </div>
             </section>
-
-            {/* Tracking Section */}
-            <div className="grid grid-cols-1 gap-8">
-              {/* Tracking Section */}
-              <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-gray-900">Recent Certified Mail</h2>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8 px-2">
-                      <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                      Refresh
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-8 px-2">
-                      <Package className="h-3.5 w-3.5 mr-1" />
-                      Add Mail
-                    </Button>
-                  </div>
-                </div>
-                <CertifiedMailTimeline
-                  events={sampleMailEvents}
-                  mailDescription="Credit Dispute Letter"
-                />
-              </section>
-            </div>
-
-            {/* Recent Chats */}
-            <h2 className="text-2xl font-bold mb-4 mt-10">Recent Chats</h2>
-            {messages.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center p-8">
-                  <p className="text-gray-500 mb-4">You haven't started any chats yet</p>
-                  <Button onClick={() => navigate('/chat')}>Start Your First Chat</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <ChatList
-                sessions={[
-                  {
-                    id: 'current',
-                    title: 'Current Chat',
-                    lastMessage: messages[messages.length - 1]?.content || '',
-                    updatedAt: messages[messages.length - 1]?.created_at || new Date().toISOString(),
-                    messageCount: messages.length,
-                    messages: messages.map(msg => ({
-                      id: msg.id,
-                      content: msg.content,
-                      role: msg.role,
-                      created_at: msg.created_at
-                    }))
-                  }
-                ]}
-              />
-            )}
           </div>
         </div>
         {/* Floating Tavus Customer Support Chatbot */}
         <ElevenLabsChatbot />
+
+        {/* Calendar Event Modal */}
+        <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add Event for {selectedDate?.toLocaleDateString()}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="event-title">Event Title *</Label>
+                <Input
+                  id="event-title"
+                  placeholder="e.g., FCRA 30-day deadline"
+                  value={newEvent.title}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="event-type">Event Type</Label>
+                <Select value={newEvent.event_type} onValueChange={(value: any) => setNewEvent({ ...newEvent, event_type: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="deadline">Deadline</SelectItem>
+                    <SelectItem value="mailed">Mail Sent</SelectItem>
+                    <SelectItem value="delivered">Mail Delivered</SelectItem>
+                    <SelectItem value="response">Response Received</SelectItem>
+                    <SelectItem value="reminder">Reminder</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="related-type">Link to (Optional)</Label>
+                <Select value={newEvent.related_type} onValueChange={(value) => setNewEvent({ ...newEvent, related_type: value, related_id: '' })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="dispute">Dispute</SelectItem>
+                    <SelectItem value="mail">Certified Mail</SelectItem>
+                    <SelectItem value="complaint">Complaint</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {newEvent.related_type && newEvent.related_type !== 'none' && (
+                <div>
+                  <Label htmlFor="related-item">Select Item</Label>
+                  <Select value={newEvent.related_id} onValueChange={(value) => setNewEvent({ ...newEvent, related_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select item" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {newEvent.related_type === 'dispute' && disputes.map(d => (
+                        <SelectItem key={d.id} value={d.id}>{d.title} - {d.bureau}</SelectItem>
+                      ))}
+                      {newEvent.related_type === 'mail' && certifiedMail.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.recipient} - {m.tracking_number}</SelectItem>
+                      ))}
+                      {newEvent.related_type === 'complaint' && complaints.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.agency} - {c.complaint_number}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div>
+                <Label htmlFor="event-description">Description (Optional)</Label>
+                <Textarea
+                  id="event-description"
+                  placeholder="Add notes or details..."
+                  value={newEvent.description}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEventModal(false)}>Cancel</Button>
+              <Button onClick={handleSaveEvent}>Save Event</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </motion.div>
   );
