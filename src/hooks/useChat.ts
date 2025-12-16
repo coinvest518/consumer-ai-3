@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "@/lib/api-client";
 import socket from "@/lib/socket";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,7 +24,7 @@ const initialMessage: ChatMessage = {
  * Centralized chat state management for a single active chat session.
  * Handles loading chat history and sending messages.
  */
-export function useChat(onCreditsUpdate?: () => void) {
+export function useChat(onCreditsUpdate?: () => void, options?: { autoLoadHistory?: boolean }) {
   const { user } = useAuth();
   const { isConnected, socketId } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
@@ -38,6 +38,68 @@ export function useChat(onCreditsUpdate?: () => void) {
     isActive: false,
     events: []
   });
+
+  // Refs for AbortController and debouncing
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced function to load chat history
+  const debouncedLoadChatHistory = useCallback((userId: string) => {
+    // Clear any existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Set new timeout for debounced call
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Create new abort controller for this request
+        abortControllerRef.current = new AbortController();
+
+        setIsLoading(true);
+        setError(null);
+
+        const response = await api.getChatHistory(userId, userId);
+
+        // Check if request was aborted
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          const transformed: ChatMessage[] = response.data
+            .map((entry: any) => ({
+              id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
+              content: entry.content || entry.message || entry.response || entry.text || '',
+              role: entry.role || (entry.response ? 'assistant' : 'user'),
+              created_at: entry.created_at,
+            }))
+            .filter((msg: ChatMessage) => !!msg.content && msg.content.trim() !== '');
+          setMessages(transformed.length > 0 ? transformed : [initialMessage]);
+        } else {
+          setMessages([initialMessage]);
+        }
+      } catch (err: any) {
+        // Don't set error if request was aborted
+        if (abortControllerRef.current?.signal.aborted) {
+          return;
+        }
+
+        console.error('Failed to load chat history:', err);
+        setError('Failed to load chat history.');
+        setMessages([initialMessage]);
+      } finally {
+        if (!abortControllerRef.current?.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }, 300); // 300ms debounce
+  }, []);
 
   // Log socket connection status
   useEffect(() => {
@@ -137,38 +199,33 @@ export function useChat(onCreditsUpdate?: () => void) {
     };
   }, []);
 
+  // Allow consumers to opt-out of automatic history loading (useful when parent components
+  // already load and pass messages to child components to avoid duplicate requests)
+  const autoLoadHistory = options?.autoLoadHistory !== false;
+
   useEffect(() => {
+    if (!autoLoadHistory) return;
+
     if (user?.id && user.id !== currentChatId) {
       setCurrentChatId(user.id);
-      setIsLoading(true);
-      api.getChatHistory(user.id, user.id)
-        .then(historyResponse => {
-          if (historyResponse.data && Array.isArray(historyResponse.data) && historyResponse.data.length > 0) {
-            const transformed: ChatMessage[] = historyResponse.data
-              .map((entry: any) => ({
-                id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
-                content: entry.content || entry.message || entry.response || entry.text || '',
-                role: entry.role || (entry.response ? 'assistant' : 'user'),
-                created_at: entry.created_at,
-              }))
-              .filter((msg: ChatMessage) => !!msg.content && msg.content.trim() !== '');
-            setMessages(transformed.length > 0 ? transformed : [initialMessage]);
-          } else {
-            setMessages([initialMessage]);
-          }
-        })
-        .catch(() => {
-          setError('Failed to load chat history.');
-          setMessages([initialMessage]);
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+      debouncedLoadChatHistory(user.id);
     } else if (!user?.id) {
         setMessages([initialMessage]);
         setCurrentChatId(null);
     }
-  }, [user?.id, currentChatId]);
+  }, [user?.id, currentChatId, autoLoadHistory, debouncedLoadChatHistory]);
+
+  // Cleanup effect to cancel pending requests on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim()) {
@@ -349,11 +406,26 @@ export function useChat(onCreditsUpdate?: () => void) {
   
   const loadChatById = useCallback(async (chatId: string) => {
     if (!chatId || !user?.id) return;
+
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await api.getChatHistory(chatId, user.id);
+
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+
       if (response.data && Array.isArray(response.data)) {
         const transformed: ChatMessage[] = response.data.map((entry: any) => ({
             id: entry.id || entry._id || `${entry.created_at}-${entry.role}`,
@@ -366,9 +438,16 @@ export function useChat(onCreditsUpdate?: () => void) {
         setMessages([initialMessage]);
       }
     } catch (err) {
+      // Don't set error if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+
       setError('Failed to load chat history.');
     } finally {
-      setIsLoading(false);
+      if (!abortControllerRef.current?.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [user?.id]);
 

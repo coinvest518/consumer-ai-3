@@ -17,8 +17,9 @@ import { supabase } from "@/lib/supabase";
 import ChatList from "../components/ChatList";
 import TemplateSidebar from "../components/TemplateSidebar";
 import ElevenLabsChatbot from "../components/ElevenLabsChatbot";
-import { useChat } from "../hooks/useChat";
+import { useChatContext } from "../contexts/ChatContext";
 import { useToast } from "@/hooks/use-toast";
+import * as templateStorage from '@/lib/templateStorage';
 
 // Sample data for demonstration
 // AI Agents
@@ -139,6 +140,45 @@ export default function EnhancedDashboard() {
     }
   }, [user?.id]);
 
+  // Saved templates (client-side store via localStorage)
+  const [savedTemplates, setSavedTemplates] = useState<any[]>([]);
+  useEffect(() => {
+    if (!user?.id) {
+      setSavedTemplates([]);
+      return;
+    }
+
+    // Try to load from server first, fallback to localStorage
+    (async () => {
+      try {
+        const resp = await api.getSavedTemplates(user.id);
+        if (resp && resp.data && Array.isArray(resp.data)) {
+          setSavedTemplates(resp.data.map((t: any) => ({
+            id: t.template_id,
+            name: t.name,
+            type: t.type,
+            fullContent: t.full_content,
+            creditCost: t.credit_cost,
+            description: t.metadata?.description || '' ,
+            legalArea: t.metadata?.legalArea || ''
+          })));
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to load saved templates from server, falling back to localStorage:', err);
+      }
+
+      try {
+        const loaded = templateStorage.getSavedTemplates(user.id);
+        setSavedTemplates(loaded || []);
+      } catch (e) {
+        console.warn('Failed to load saved templates:', e);
+        setSavedTemplates([]);
+      }
+    })();
+
+  }, [user?.id, metrics]);
+
   // Agent click
   const handleAgentClick = (agentId: string) => {
     setSelectedAgent(agentId === selectedAgent ? null : agentId);
@@ -218,7 +258,7 @@ export default function EnhancedDashboard() {
     error: chatError,
     loadChatById,
     agentState,
-  } = useChat(refetchMetrics);
+  } = useChatContext();
 
   // Removed testChatConnection function
 
@@ -354,6 +394,61 @@ export default function EnhancedDashboard() {
                   />
                 ))}
               </div>
+            </section>
+
+            {/* My Templates (saved by user) */}
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">My Templates</h2>
+                <Button variant="ghost" size="sm" onClick={() => {
+                  // reload saved templates
+                  if (user?.id) setSavedTemplates(templateStorage.getSavedTemplates(user.id));
+                }}>
+                  Refresh
+                </Button>
+              </div>
+
+              {savedTemplates.length === 0 ? (
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-gray-500">You haven't saved any templates yet. Use templates from the library to save them here for quick access.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {savedTemplates.map((tmpl) => (
+                    <Card key={tmpl.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h3 className="font-semibold text-sm text-gray-900">{tmpl.name}</h3>
+                            <p className="text-xs text-gray-500">{tmpl.legalArea}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => handleTemplateSelect(tmpl)}>Apply</Button>
+                            <Button size="sm" variant="outline" onClick={async () => {
+                              if (!user?.id) return;
+                              try {
+                                // Try server delete first
+                                await api.deleteSavedTemplate(tmpl.id, user.id);
+                                toast({ title: 'Removed', description: `${tmpl.name} removed from saved templates.` });
+                              } catch (err) {
+                                // Fallback to local storage delete
+                                templateStorage.removeSavedTemplate(user.id, tmpl.id);
+                                toast({ title: 'Removed (local)', description: `${tmpl.name} removed from saved templates.` });
+                              } finally {
+                                // Refresh local view
+                                try { setSavedTemplates(templateStorage.getSavedTemplates(user.id)); } catch(e) { setSavedTemplates([]); }
+                              }
+                            }}>Remove</Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-600 line-clamp-3">{tmpl.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </section>
 
             {/* Tools & Integrations Section */}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
+import * as templateStorage from '@/lib/templateStorage';
 
 export const TEMPLATE_CATEGORIES = {
   PERSONAL_INFO: 'Personal Information',
@@ -769,7 +770,11 @@ export default function TemplateSidebar({
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedType, setSelectedType] = useState<"all" | "prompt" | "form">("all");
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  // Track processing state per-template to avoid disabling all buttons when one is clicked
+  const [processingTemplates, setProcessingTemplates] = useState<string[]>([]);
+  const isProcessingFor = (id: string) => processingTemplates.includes(id);
+  const addProcessing = (id: string) => setProcessingTemplates(prev => [...prev, id]);
+  const removeProcessing = (id: string) => setProcessingTemplates(prev => prev.filter(x => x !== id));
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -808,12 +813,27 @@ export default function TemplateSidebar({
     }
 
     try {
-      setIsProcessing(true);
+      addProcessing(template.id);
       // Call backend to track usage and deduct credits
       await api.useTemplate(template.id, user.id);
 
+      // Save template to server-side store and local fallback
+      try {
+        await api.saveTemplate({
+          templateId: template.id,
+          name: template.name,
+          type: template.type,
+          fullContent: template.fullContent,
+          creditCost: template.creditCost,
+          metadata: { legalArea: template.legalArea }
+        }, user.id);
+      } catch (err) {
+        console.warn('Failed to save template on server, falling back to local storage:', err);
+        try { templateStorage.saveTemplate(user.id, template); } catch (saveErr) { console.warn('Failed to save template locally:', saveErr); }
+      }
+
       // Small delay to ensure server-side processing completes
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 400));
 
       // Call the template selection handler
       onTemplateSelect(template);
@@ -839,7 +859,7 @@ export default function TemplateSidebar({
         variant: "destructive"
       });
     } finally {
-      setIsProcessing(false);
+      removeProcessing(template.id);
     }
   };
 
@@ -1030,11 +1050,11 @@ export default function TemplateSidebar({
               {/* Use Template Button */}
               <Button
                 onClick={() => handleUseTemplate(template)}
-                disabled={userCredits < template.creditCost || isProcessing}
+                disabled={userCredits < template.creditCost || isProcessingFor(template.id)}
                 className="w-full mt-3 text-sm"
                 size="sm"
               >
-                {isProcessing ? "Processing..." : 
+                {isProcessingFor(template.id) ? "Processing..." : 
                  userCredits < template.creditCost ? "Insufficient Credits" : 
                  `Use Template (${template.creditCost} credits)`}
               </Button>
@@ -1125,9 +1145,10 @@ export default function TemplateSidebar({
                   handleUseTemplate(previewTemplate);
                   setPreviewTemplate(null);
                 }}
-                disabled={userCredits < previewTemplate.creditCost || isProcessing}
+                disabled={userCredits < previewTemplate.creditCost || isProcessingFor(previewTemplate.id)}
               >
-                {userCredits < previewTemplate.creditCost ? 
+                {isProcessingFor(previewTemplate.id) ? "Processing..." :
+                 userCredits < previewTemplate.creditCost ? 
                   "Insufficient Credits" : 
                   `Use Template (${previewTemplate.creditCost} credits)`}
               </Button>

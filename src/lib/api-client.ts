@@ -1,6 +1,7 @@
 
-// The base URL for the API (should NOT end with /api)
-const API_URL = import.meta.env.VITE_API_URL || 'https://consumer-ai-render.onrender.com';
+// The base URL for the API. If not provided, prefer same-origin serverless routes under `/api`.
+// Set VITE_API_URL in your environment to override (e.g., for remote API hosts).
+const API_URL = import.meta.env.VITE_API_URL || '';
 /**
  * Simple API client for ConsumerAI
  */
@@ -15,15 +16,18 @@ async function fetchApi(endpoint: string, options: RequestInit = {}, userId?: st
   } else {
     console.warn('[API] No user ID provided for request');
   }
+
   const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-  const url = `${API_URL}/api/${normalizedEndpoint}`;
-  const finalUrl = API_URL.endsWith('/api')
-    ? `${API_URL}/${normalizedEndpoint}`
-    : url;
-  console.log(`[API] Fetching ${finalUrl}`);
-  console.log(`[API] Request body:`, options.body);
+
+  // Choose base URL: prefer configured VITE_API_URL, otherwise use same-origin '/api'
+  const base = API_URL && API_URL.trim().length > 0 ? API_URL.replace(/\/+$/, '') : '';
+  const fetchUrl = base ? `${base}/api/${normalizedEndpoint}` : `/api/${normalizedEndpoint}`;
+
+  console.log(`[API] Base: ${base || 'same-origin /api'} | Fetching: ${fetchUrl}`);
+  if (options.body) console.log(`[API] Request body:`, options.body);
+
   try {
-    const response = await fetch(finalUrl, {
+    const response = await fetch(fetchUrl, {
       ...options,
       headers
     });
@@ -34,7 +38,7 @@ async function fetchApi(endpoint: string, options: RequestInit = {}, userId?: st
     }
     return await response.json();
   } catch (error) {
-    console.error(`[API] Error fetching ${url}:`, error);
+    console.error(`[API] Error fetching ${fetchUrl}:`, error);
     throw error;
   }
 }
@@ -144,6 +148,28 @@ export const api = {
     return fetchApi('payments/verify', {
       method: 'POST',
       body: JSON.stringify({ sessionId })
+    }, userId);
+  },
+
+  // Templates (server-side saved templates)
+  saveTemplate: (template: { templateId: string, name: string, type: string, fullContent: string, creditCost?: number, metadata?: any }, userId: string) => {
+    if (!userId) throw new Error('User ID is required for saving a template');
+    return fetchApi('templates/save', {
+      method: 'POST',
+      body: JSON.stringify(template)
+    }, userId);
+  },
+
+  getSavedTemplates: (userId: string) => {
+    if (!userId) throw new Error('User ID is required for fetching saved templates');
+    return fetchApi('templates/list', {}, userId);
+  },
+
+  deleteSavedTemplate: (templateId: string, userId: string) => {
+    if (!userId) throw new Error('User ID is required for deleting a saved template');
+    return fetchApi('templates/delete', {
+      method: 'POST',
+      body: JSON.stringify({ templateId })
     }, userId);
   },
 

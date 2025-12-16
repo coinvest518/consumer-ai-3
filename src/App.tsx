@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { inject } from "@vercel/analytics";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ChatProvider } from "./contexts/ChatContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -34,8 +35,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter basename={baseUrl}>
           <AuthProvider>
-            <Elements stripe={stripePromise}>
-              <Layout>
+            <ChatProvider>
+              <Elements stripe={stripePromise}>
+                <Layout>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
@@ -50,6 +52,7 @@ function App() {
                 </Routes>
               </Layout>
             </Elements>
+            </ChatProvider>
           </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>

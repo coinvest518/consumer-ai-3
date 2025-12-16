@@ -8,7 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 import AgentSelector from "./AgentSelector";
 import { defaultPrompts } from "./ToolPanel";
-import { useChat } from "@/hooks/useChat";
+import { useChatContext } from "@/contexts/ChatContext";
 import { useSocket } from "@/hooks/useSocket";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface(props: ChatInterfaceProps) {
-  const chatHook = useChat();
+  const chatHook = useChatContext();
   const { user } = useAuth();
   const { isConnected: socketConnected } = useSocket();
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ChatInterface from "@/components/chat/ChatInterface";
-import { useChat } from "@/hooks/useChat";
+import { useChatContext } from "@/contexts/ChatContext";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
@@ -16,7 +16,7 @@ import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
 const Chat = () => {
 
   const { chatId } = useParams<{ chatId: string }>();
-  const { messages, sendMessage, isLoading, loadChatById } = useChat();
+  const { messages, sendMessage, isLoading, loadChatById } = useChatContext();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
