@@ -211,3 +211,42 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
   font-size: 0.95rem;
 }
+
+/* Ensure Download button doesn't overlap content on small screens */
+.report-analysis button[aria-label="Download report as PDF"] {
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+}
+
+@media (max-width: 640px) {
+  .report-analysis .prose {
+    padding-top: 0.5rem;
+  }
+  .report-analysis button[aria-label="Download report as PDF"] {
+    width: auto;
+  }
+}
+
+/* Layout for report components */
+.report-analysis .section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.report-analysis .issue-card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.report-analysis .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.report-analysis .badge.high { background: #fee2e2; color: #991b1b; }
+.report-analysis .badge.medium { background: #fffbeb; color: #854d0e; }
+.report-analysis .badge.low { background: #ecfeff; color: #065f46; }
