@@ -2,12 +2,11 @@ import { useState, useEffect, useContext, createContext, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { FormattedMessage } from "./FormattedMessage";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bot, User, Clock, Sparkles } from "lucide-react";
+import { Bot, User, Clock, Sparkles, Download } from "lucide-react";
 import type { ChatMessage as ChatMessageType } from "@/types/api";
 import AgentIndicator from "./AgentIndicator";
 import html2pdf from 'html2pdf.js';
 
-// Global mute context for AI voice
 export const AIVoiceMuteContext = createContext<{ muted: boolean; setMuted: (m: boolean) => void }>({ muted: false, setMuted: () => {} });
 
 interface ChatMessageProps {
@@ -18,36 +17,19 @@ interface ChatMessageProps {
 export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps) {
   const { muted } = useContext(AIVoiceMuteContext);
   const isUser = message.role === 'user';
+  const [isHovered, setIsHovered] = useState(false);
 
-
-  // Safety check for message structure
   if (!message || !message.content) {
     console.warn('ChatMessage received invalid message (missing content):', message);
     return null;
   }
-  // Debug: log every message received by ChatMessage
-  console.log('[ChatMessage] rendering message:', message);
 
-  // Detect if this message is a tool/integration suggestion (not an AI agent action)
-  // We'll use a simple convention: if the message contains a special marker, e.g. [Integration]
-  const isIntegration =
-    typeof message.content === 'string' &&
-    (
-      message.content.includes('This is an integration, not an AI agent') ||
-      message.content.includes('[Integration]')
-    );
+  const isIntegration = typeof message.content === 'string' && (message.content.includes('This is an integration, not an AI agent') || message.content.includes('[Integration]'));
 
-  const time = new Date(message.created_at).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // Text-to-speech for AI responses
-  // Prevent speech on initial page load
   useEffect(() => {
-    // Only speak if this is a new AI message (not the first assistant greeting)
-    // We'll check if the message.id does NOT end with "0-ai" (the default greeting)
-    // ...existing TTS logic...
+    // TTS logic placeholder
   }, [message, shouldSpeakAI, muted]);
 
   const bubbleRef = useRef<HTMLDivElement | null>(null);
@@ -56,22 +38,19 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
     if (!bubbleRef.current) return;
     try {
       const element = bubbleRef.current.cloneNode(true) as HTMLElement;
-      // remove any interactive controls from cloned element
       element.querySelectorAll('button, .no-print').forEach((el) => el.remove());
-      // create a wrapper to avoid including UI controls
       const wrapper = document.createElement('div');
       wrapper.style.padding = '20px';
       wrapper.style.background = 'white';
       wrapper.appendChild(element);
 
       const opt = {
-        margin:       10,
-        filename:     `ai-response-${message.id || Date.now()}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: 10,
+        filename: `ai-response-${message.id || Date.now()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-      // @ts-ignore html2pdf types are global-ish
       html2pdf().set(opt).from(wrapper).save();
     } catch (err) {
       console.error('PDF export failed', err);
@@ -80,66 +59,77 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
 
   return (
     <div className={cn(
-      "flex w-full gap-2 sm:gap-3 px-1 sm:px-0",
+      "flex w-full gap-2 sm:gap-3 px-2 sm:px-4 py-2 animate-in fade-in slide-in-from-bottom-2 duration-300",
       isUser ? "justify-end" : "justify-start"
-    )}>
+    )}
+    onMouseEnter={() => setIsHovered(true)}
+    onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Bot Avatar */}
+      {!isUser && (
+        <div className="flex-shrink-0 pt-1">
+          <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border-2 border-white shadow-md ring-2 ring-blue-100">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+              <Bot className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      )}
+
       {/* Message Content */}
       <div className={cn(
-        "max-w-[90vw] sm:max-w-[80%] space-y-1",
-        isUser ? "items-end" : "items-start"
+        "flex flex-col gap-1.5",
+        isUser ? "items-end" : "items-start",
+        "max-w-[85vw] sm:max-w-[70%]"
       )}>
-
         {/* Message Bubble */}
-        <div ref={bubbleRef} className={cn(
-          "relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm border text-sm sm:text-base",
-          isUser
-            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white ml-auto rounded-br-sm"
-            : "bg-white text-gray-800 rounded-bl-sm"
-        )}>
-          {/* Export button for AI messages */}
-          {!isUser && (
-            <div className="absolute top-2 right-2">
-              <button
-                onClick={handleExportPDF}
-                className="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200"
-                title="Download this response as PDF"
-              >
-                Export PDF
-              </button>
-            </div>
+        <div 
+          ref={bubbleRef}
+          className={cn(
+            "px-4 py-3 sm:px-5 sm:py-4 rounded-2xl shadow-sm transition-all duration-200",
+            isUser
+              ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-none hover:shadow-md"
+              : "bg-white text-gray-900 border border-gray-200 rounded-bl-none hover:shadow-md hover:border-gray-300"
           )}
+        >
           {!isUser && <AgentIndicator content={message.content} />}
           {isIntegration && (
-            <div className="mb-1 flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded-full w-fit">
-              <Sparkles className="h-3 w-3" />
+            <div className="mb-2 inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
+              <Sparkles className="h-3.5 w-3.5" />
               Integration Tool
             </div>
           )}
-          <FormattedMessage content={message.content} isAI={!isUser} />
-          {/* Message tail */}
-          <div className={cn(
-            "absolute bottom-0 w-2.5 h-2.5 sm:w-3 sm:h-3",
-            isUser
-              ? "right-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-bl-full"
-              : "left-0 bg-white border-l border-b rounded-br-full"
-          )}></div>
+          <div className="text-sm sm:text-base leading-relaxed">
+            <FormattedMessage content={message.content} isAI={!isUser} />
+          </div>
         </div>
 
-        {/* Timestamp */}
+        {/* Metadata Row */}
         <div className={cn(
-          "flex items-center gap-1 text-[11px] sm:text-xs text-gray-500 px-1 sm:px-2",
-          isUser ? "justify-end" : "justify-start"
+          "flex items-center gap-2 text-xs sm:text-sm text-gray-500 px-1 transition-opacity duration-200",
+          isUser ? "justify-end" : "justify-start",
+          isHovered ? "opacity-100" : "opacity-70"
         )}>
           <Clock className="h-3 w-3" />
-          <span>{time}</span>
+          <span className="font-medium">{time}</span>
+          {!isUser && (
+            <button
+              onClick={handleExportPDF}
+              className="ml-2 sm:ml-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors duration-150 no-print"
+              title="Download this response as PDF"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* User Avatar (right side) */}
+      {/* User Avatar */}
       {isUser && (
-        <div className="flex-shrink-0">
-          <Avatar className="h-7 w-7 sm:h-8 sm:w-8 border-2 border-white shadow-sm">
-            <AvatarFallback className="bg-gradient-to-br from-green-500 to-blue-500 text-white">
+        <div className="flex-shrink-0 pt-1">
+          <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border-2 border-white shadow-md ring-2 ring-green-100">
+            <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold">
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>

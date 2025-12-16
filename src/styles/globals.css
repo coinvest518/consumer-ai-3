@@ -6,66 +6,49 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
- 
     --secondary: 199.4 88.7% 48.4%;
     --secondary-foreground: 210 40% 98%;
- 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
- 
     --radius: 0.5rem;
   }
- 
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
- 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
- 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
- 
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
- 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
- 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -75,27 +58,68 @@
   }
 }
 
-/* Custom styles for chat bubbles */
+/* Modern animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Chat bubble styles */
 .chat-bubble-user {
-  background-color: #2563eb; /* Primary blue */
+  background-color: #2563eb;
   color: white;
+  border-radius: 18px 18px 4px 18px;
 }
 
 .chat-bubble-ai {
   background-color: white;
   border: 1px solid #e5e7eb;
+  border-radius: 18px 18px 18px 4px;
 }
 
 /* Document-like styles for AI responses */
 .ai-document {
-  /* Use prose plugin utilities when available, fall back to sensible defaults */
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: rgb(31 41 55);
+  line-height: 1.6;
 }
 
 .ai-document h3 {
   margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   color: rgb(17 24 39);
@@ -110,73 +134,20 @@
 .ai-document ul {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  list-style-position: inside;
 }
 
-.ai-document dl > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.25rem 0;
-}
-
-/* Print-friendly adjustments */
-@media print {
-  .chat-bubble-ai {
-    border: none;
-    box-shadow: none;
-    padding: 0;
-  }
-  .ai-document {
-    font-size: 12pt;
-    line-height: 1.45;
-  }
-}
-
-/* Glass effect */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-} 
-
-/* Animation for agent activity */
-@keyframes pulse-once {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 1; }
-}
-
-.animate-pulse-once {
-  animation: pulse-once 1s ease-in-out;
-}
-
-/* Mobile chat scrolling fixes */
-.mobile-chat-container {
-  height: calc(100vh - 80px);
-  overflow: hidden;
-}
-
-.mobile-scroll {
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-
-.mobile-input {
-  -webkit-appearance: none;
-  border-radius: 0.75rem;
-}
-
-/* Markdown code block styling inside AI document */
 .ai-document pre {
-  background: #0f172a; /* slate-900 */
-  color: #f8fafc; /* slate-50 */
+  background: #0f172a;
+  color: #f8fafc;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
+  font-size: 0.9em;
 }
+
 .ai-document code {
-  background: #f1f5f9; /* slate-100 */
+  background: #f1f5f9;
   padding: 0.15rem 0.4rem;
   border-radius: 0.25rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
@@ -188,45 +159,18 @@
   border-collapse: collapse;
   margin-top: 0.5rem;
 }
+
 .ai-document th, .ai-document td {
   border: 1px solid #e6e7eb;
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
-/* Report analysis specific styles */
+/* Report analysis styles */
 .report-analysis {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
-.report-analysis .report-section {
-  border-left: 3px solid rgba(0,0,0,0.04);
-  padding: 0.75rem 0.75rem;
-  border-radius: 6px;
-  background: #fff;
-}
-.report-analysis h3 {
-  margin: 0;
-}
-.report-analysis pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
-  font-size: 0.95rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Ensure Download button doesn't overlap content on small screens */
-.report-analysis button[aria-label="Download report as PDF"] {
-  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
-}
-
-@media (max-width: 640px) {
-  .report-analysis .prose {
-    padding-top: 0.5rem;
-  }
-  .report-analysis button[aria-label="Download report as PDF"] {
-    width: auto;
-  }
-}
-
-/* Layout for report components */
 .report-analysis .section-title {
   font-size: 0.95rem;
   font-weight: 600;
@@ -247,6 +191,77 @@
   font-weight: 600;
   text-transform: uppercase;
 }
+
 .report-analysis .badge.high { background: #fee2e2; color: #991b1b; }
 .report-analysis .badge.medium { background: #fffbeb; color: #854d0e; }
 .report-analysis .badge.low { background: #ecfeff; color: #065f46; }
+
+/* Glass effect */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Mobile optimizations */
+.mobile-chat-container {
+  height: calc(100vh - 80px);
+  overflow: hidden;
+}
+
+.mobile-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-input {
+  -webkit-appearance: none;
+  border-radius: 0.75rem;
+  font-size: 16px;
+}
+
+/* Print styles */
+@media print {
+  .chat-bubble-ai {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .ai-document {
+    font-size: 12pt;
+    line-height: 1.45;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .report-analysis .prose {
+    padding-top: 0.5rem;
+  }
+  .mobile-input {
+    font-size: 16px;
+  }
+}
+
+/* Smooth transitions */
+@layer utilities {
+  .transition-smooth {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .animate-slide-in {
+    animation: slideInUp 0.3s ease-out;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}

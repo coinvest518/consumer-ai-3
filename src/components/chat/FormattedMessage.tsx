@@ -28,6 +28,28 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
 
   try {
 
+  // Check if content is JSON credit report data
+  const tryParseJSON = (str: string) => {
+    try {
+      const trimmed = str.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        return JSON.parse(trimmed);
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  };
+
+  const jsonData = tryParseJSON(content);
+  if (jsonData && typeof jsonData === 'object' && (jsonData.summary || jsonData.accountissues || jsonData.fcraviolations)) {
+    return (
+      <ErrorBoundary>
+        <ReportAnalysis content={content} />
+      </ErrorBoundary>
+    );
+  }
+
   // Check if the content contains tool usage indicators
   const hasToolUsage = content.includes('[Tool:') || content.includes('[Action:');
 
