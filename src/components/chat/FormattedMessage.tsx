@@ -96,7 +96,7 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
       for (let i = 0; i < parts.length; i++) {
         if (i % 3 === 0) {
           // Regular text part
-          formattedParts.push(formatBoldText(parts[i]).join(''));
+          formattedParts.push(formatBoldText(parts[i]));
         } else if (i % 3 === 1) {
           // This is a tool type (Tool or Action)
           const toolType = parts[i];
@@ -120,12 +120,12 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
       return formattedParts.join('');
     } else {
       // If no tool usage, just format bold text
-      return formatBoldText(text).join('');
+      return formatBoldText(text);
     }
   };
   
   // Helper function to format bold text
-  const formatBoldText = (text: string) => {
+  const formatBoldText = (text: string): string => {
     // Split by markdown bold markers
     const parts = text.split(/\*\*(.*?)\*\*/g);
     
@@ -135,7 +135,7 @@ export const FormattedMessage = ({ content, isAI = false }: FormattedMessageProp
         return `<strong class="${isAI ? 'text-blue-700' : 'text-blue-100'} font-semibold">${part}</strong>`;
       }
       return part;
-    });
+    }).join('');
   };
   
   // detect simple markdown patterns
