@@ -47,11 +47,11 @@ export default function ChatMessage({ message, shouldSpeakAI }: ChatMessageProps
       const opt = {
         margin: 10,
         filename: `ai-response-${message.id || Date.now()}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-      html2pdf().set(opt).from(wrapper).save();
+      (html2pdf() as any).set(opt).from(wrapper).save();
     } catch (err) {
       console.error('PDF export failed', err);
     }
