@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
   Calendar as CalendarIcon, FileText, Package, 
-  Clock, RefreshCw, Menu, Plus, Building2, Phone, MapPin, Mail as MailIcon, BookOpen, Scale, TrendingUp, Gavel, ExternalLink
+  Clock, RefreshCw, Menu, Plus, Building2, Phone, MapPin, Mail as MailIcon, BookOpen, Scale, TrendingUp, Gavel, ExternalLink, Bell, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -569,7 +569,7 @@ export default function EnhancedDashboard() {
                         <p className="text-gray-500 text-center py-8">No disputes yet. Click "New Dispute" to start.</p>
                       ) : (
                         disputes.map(dispute => (
-                          <div key={dispute.id} className="p-4 border rounded-lg">
+                          <div key={dispute.id} className="p-4 border rounded-lg space-y-3">
                             <div className="flex justify-between items-start">
                               <div>
                                 <h4 className="font-semibold">{dispute.title}</h4>
@@ -577,6 +577,33 @@ export default function EnhancedDashboard() {
                                 <p className="text-xs text-gray-500">Sent: {dispute.date_sent ? new Date(dispute.date_sent).toLocaleDateString() : 'Not sent'}</p>
                               </div>
                               <span className={`px-2 py-1 text-xs rounded dispute-status-${dispute.status}`}>{dispute.status}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="flex-1"
+                                onClick={() => {
+                                  toast({ title: 'Reminder Set', description: 'You\'ll receive a free email reminder for this dispute' });
+                                }}
+                              >
+                                <Bell className="w-3 h-3 mr-1" />
+                                Set Reminder (Free)
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                onClick={() => {
+                                  if (metrics.credits < 3) {
+                                    toast({ title: 'Insufficient Credits', description: 'You need 3 credits for AI-generated follow-up', variant: 'destructive' });
+                                    return;
+                                  }
+                                  toast({ title: 'Generating...', description: 'AI is creating your personalized follow-up letter (3 credits)' });
+                                }}
+                              >
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                AI Follow-Up (3 credits)
+                              </Button>
                             </div>
                           </div>
                         ))
