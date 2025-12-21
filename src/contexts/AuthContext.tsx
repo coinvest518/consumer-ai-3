@@ -113,6 +113,26 @@ const ensureProfileExists = async (supabaseUser: SupabaseUser) => {
   }
 };
 
+// Check and claim daily login bonus for authenticated users
+const checkDailyLoginBonus = async (userId: string) => {
+  try {
+    const response = await fetch('/api/daily-login-bonus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    });
+
+    const data = await response.json();
+
+    if (data.success && !data.alreadyClaimed) {
+      console.log('Daily login bonus claimed:', data.creditsAwarded, 'credits, streak:', data.streakCount);
+      // The notification will be handled by the socket event listener in useCredits hook
+    }
+  } catch (error) {
+    console.error('Error checking daily login bonus:', error);
+  }
+};
+
 // Convert Supabase user to our User type
 const mapUser = (supabaseUser: SupabaseUser): User => ({
   id: supabaseUser.id,
@@ -180,10 +200,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (currentSession) {
         // Set user immediately without waiting for profile creation
         setUser(mapUser(currentSession.user));
-        
+
         // Create profile/credits/metrics in background (non-blocking)
         ensureProfileExists(currentSession.user).catch(error => {
           console.error('Background profile creation failed:', error);
+        });
+
+        // Check for daily login bonus (non-blocking)
+        checkDailyLoginBonus(currentSession.user.id).catch(error => {
+          console.error('Daily login bonus check failed:', error);
         });
       } else {
         setUser(null);

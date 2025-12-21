@@ -2,6 +2,7 @@ import { creditBuilders as baseCreditBuilders, CreditBuilder } from "@/types/Cre
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCredits } from "@/hooks/useCredits";
 import { useState } from "react";
 import { Building, Shield, TrendingUp, DollarSign, CreditCard, Verified, Star, Award, Zap, Target, BookOpen, Users, Calendar, CheckCircle, X, Mail, Phone, MessageSquare } from 'lucide-react';
 import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
@@ -56,6 +57,7 @@ export default function CreditBuilderPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { refreshCredits } = useCredits();
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [questionnaireStep, setQuestionnaireStep] = useState(1);
   const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({
@@ -231,6 +233,10 @@ export default function CreditBuilderPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ builderId: builder.id, userId: user.id, points: builder.points }),
       });
+      
+      // Refresh credits to show the update immediately
+      await refreshCredits();
+      
       window.open(builder.link, "_blank");
       toast({ title: "Credits Awarded!", description: `You earned ${builder.points} credits.` });
     } catch (e) {

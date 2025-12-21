@@ -6,6 +6,7 @@ import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import * as templateStorage from '@/lib/templateStorage';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import CreditsDisplay from '@/components/CreditsDisplay';
 
 export const TEMPLATE_CATEGORIES = {
   PERSONAL_INFO: 'Personal Information',
@@ -939,14 +940,7 @@ export default function TemplateSidebar({
           </div>
 
           {/* Credits Display */}
-          <div className="mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="flex items-center gap-2 text-sm">
-              <CreditCard className="w-4 h-4 text-blue-600" />
-              <span className="text-blue-800 dark:text-blue-200">
-                Credits: <span className="font-semibold">{userCredits}</span>
-              </span>
-            </div>
-          </div>
+          <CreditsDisplay />
 
           {/* Search */}
           <div className="relative mb-4">
