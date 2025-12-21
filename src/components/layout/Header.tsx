@@ -22,6 +22,7 @@ export default function Header() {
           <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Features</a>
           <Link to="/pricing" className="text-gray-600 hover:text-primary transition-colors">Pricing</Link>
           <Link to="/credit-builder" className="text-gray-600 hover:text-primary transition-colors">Credit Builder</Link>
+          <Link to="/blog" className="text-gray-600 hover:text-primary transition-colors">Blog</Link>
           <a href="https://buymeacoffee.com/coinvest/extras" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary transition-colors">Free Products</a>
         </nav>
 
@@ -69,6 +70,7 @@ export default function Header() {
             <a href="#features" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Features</a>
             <Link to="/pricing" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
             <Link to="/credit-builder" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Credit Builder</Link>
+            <Link to="/blog" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Blog</Link>
             <a href="https://buymeacoffee.com/coinvest/extras" target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Free Resources</a>
           </nav>
           
