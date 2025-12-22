@@ -14,6 +14,7 @@
     
 
     { "src": "/api/credit-builder/?", "dest": "/api/credit-builder.ts" },
+    { "src": "/api/daily-login-bonus/?", "dest": "/api/daily-login-bonus.ts" },
     { "src": "/api/create-checkout-session/?", "dest": "/api/create-checkout-session.ts" },
     { "src": "/api/stripe-webhook/?", "dest": "/api/stripe-webhook.ts" },
     { "src": "/api/upload/?", "dest": "/api/upload.ts" },
