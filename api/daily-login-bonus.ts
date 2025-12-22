@@ -1,5 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase } from '../../src/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+// Create a server-side Supabase client using server env vars
+function getSupabaseClient() {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables on server');
+  }
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -10,6 +20,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!userId) {
     return res.status(400).json({ error: 'Missing userId' });
   }
+
+  const supabase = getSupabaseClient();
 
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 

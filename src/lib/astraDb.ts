@@ -9,8 +9,8 @@ let astraClient: any = null;
  */
 export function getAstraClient(): any {
   if (!astraClient) {
-    const token = process.env.ASTRA_DB_APPLICATION_TOKEN || '';
-    const endpoint = process.env.ASTRA_DB_ENDPOINT || '';
+    const token = import.meta.env.VITE_ASTRA_DB_APPLICATION_TOKEN || '';
+    const endpoint = import.meta.env.VITE_ASTRA_DB_ENDPOINT || '';
     
     if (!token || !endpoint) {
       throw new Error('Astra DB credentials not configured');

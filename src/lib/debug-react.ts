@@ -88,7 +88,7 @@ const debugReact = () => {
 };
 
 // Execute immediately in production
-if (process.env.NODE_ENV === 'production') {
+if (import.meta.env.PROD) {
   window.addEventListener('load', () => {
     setTimeout(debugReact, 1000);
   });
