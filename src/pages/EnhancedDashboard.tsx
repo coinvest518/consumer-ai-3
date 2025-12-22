@@ -411,19 +411,20 @@ export default function EnhancedDashboard() {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      {/* Sidebar */}
-      <TemplateSidebar
-        isOpen={isSidebarOpen}
-        onToggle={handleSidebarToggle}
-        onTemplateSelect={handleTemplateSelect}
-        userCredits={metrics.remaining}
-        onCreditUpdate={refetchMetrics}
-      />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-h-screen bg-gray-50">
+      <div className="flex">
+        {/* Sidebar */}
+        <TemplateSidebar
+          isOpen={isSidebarOpen}
+          onToggle={handleSidebarToggle}
+          onTemplateSelect={handleTemplateSelect}
+          userCredits={metrics.remaining}
+          onCreditUpdate={refetchMetrics}
+        />
 
-      <div className={`min-h-screen bg-gray-50 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-96' : ''}`}>
-        <div className="p-6">
-          <div className="max-w-7xl mx-auto">
+        <div className="flex-1 min-h-screen">
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
@@ -431,11 +432,11 @@ export default function EnhancedDashboard() {
                   variant="outline"
                   size="sm"
                   onClick={handleSidebarToggle}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 lg:hidden"
                 >
                   <Menu className="w-4 h-4" />
                   <FileText className="w-4 h-4" />
-                  {isSidebarOpen ? 'Close Templates' : 'Templates'}
+                  Templates
                 </Button>
                 <h1 className="text-3xl font-bold">Dashboard</h1>
               </div>
@@ -1111,6 +1112,7 @@ export default function EnhancedDashboard() {
           </DialogContent>
         </Dialog>
       </div>
+    </div>
     </motion.div>
   );
 }

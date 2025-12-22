@@ -780,7 +780,16 @@ export default function TemplateSidebar({
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const categories = ["All", ...Array.from(new Set(legalTemplates.map((t) => t.category)))];
+  // Group templates by category
+  const templatesByCategory = legalTemplates.reduce((acc, template) => {
+    if (!acc[template.category]) {
+      acc[template.category] = [];
+    }
+    acc[template.category].push(template);
+    return acc;
+  }, {} as Record<string, Template[]>);
+
+  const categories = ["All", ...Object.values(TEMPLATE_CATEGORIES)];
 
   const filteredTemplates = legalTemplates.filter((template) => {
     const matchesSearch =
@@ -918,11 +927,15 @@ export default function TemplateSidebar({
       {/* Sidebar */}
       <div
         className={`
-        fixed top-0 left-0 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
-        transform transition-transform duration-300 ease-in-out z-50
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        w-80 lg:w-96 flex flex-col shadow-lg
-        h-[calc(100vh-200px)] lg:h-[calc(100vh-200px)]
+        bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700
+        flex flex-col shadow-lg
+        w-80 lg:w-96
+        h-full
+        ${isOpen ? "block" : "hidden lg:block"}
+        lg:static lg:translate-x-0 lg:z-auto
+        fixed top-0 left-0 z-50
+        transform transition-transform duration-300 ease-in-out lg:transform-none
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
       >
         {/* Header */}
@@ -960,44 +973,77 @@ export default function TemplateSidebar({
           {/* Filters */}
           <div className="space-y-3">
             {/* Type Filter */}
-            <div className="flex gap-2">
-              {(["all", "prompt", "form"] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setSelectedType(type)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    selectedType === type
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
-                >
-                  {type === "all" ? "All" : type === "prompt" ? "Prompts" : "Forms"}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Template Type:</label>
+              <div className="flex gap-2">
+                {(["all", "prompt", "form"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      selectedType === type
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {type === "all" ? "All Types" : type === "prompt" ? "Prompts" : "Forms"}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Category Filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg 
-                       bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                       focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            {/* Category Tabs */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Legal Category:</label>
+              <div className="flex flex-wrap gap-1">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                      selectedCategory === category
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Templates List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {filteredTemplates.map((template) => (
-            <div
-              key={template.id}
+        <div className="flex-1 overflow-hidden">
+          {/* Category Header */}
+          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              {selectedCategory === "All" ? "All Legal Templates" : `${selectedCategory} Templates`}
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              {selectedCategory === "All" 
+                ? legalTemplates.length 
+                : (templatesByCategory[selectedCategory]?.length || 0)
+              } templates available
+            </p>
+          </div>
+
+          {/* Templates Scrollable Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {(selectedCategory === "All" ? legalTemplates : (templatesByCategory[selectedCategory] || []))?.filter((template) => {
+              const matchesSearch =
+                template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                template.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                template.legalArea.toLowerCase().includes(searchTerm.toLowerCase());
+
+              const matchesType = selectedType === "all" || template.type === selectedType;
+
+              return matchesSearch && matchesType;
+            }).map((template) => (
+              <div
+                key={template.id}
               className="group relative bg-gray-50 dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-700 
                        transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
             >
@@ -1094,13 +1140,25 @@ export default function TemplateSidebar({
             </div>
           ))}
 
-          {filteredTemplates.length === 0 && (
+          {((selectedCategory !== "All" && !templatesByCategory[selectedCategory]) || 
+            (selectedCategory === "All" ? legalTemplates : templatesByCategory[selectedCategory] || []).filter((template) => {
+              const matchesSearch =
+                template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                template.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                template.legalArea.toLowerCase().includes(searchTerm.toLowerCase());
+
+              const matchesType = selectedType === "all" || template.type === selectedType;
+
+              return matchesSearch && matchesType;
+            }).length === 0) && (
             <div className="text-center py-8">
               <Scale className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400">No templates found</p>
               <p className="text-sm text-gray-400 dark:text-gray-500">Try adjusting your search or filters</p>
             </div>
           )}
+        </div>
         </div>
       </div>
 
