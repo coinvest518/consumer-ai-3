@@ -190,7 +190,7 @@ export default function TestimonialsSection() {
             Join thousands of satisfied customers improving their credit
           </p>
           <a
-            href="#booking"
+            href="https://cal.com/bookme-daniel/credit-repair-chat"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors"
           >
             Start Your Free Consultation

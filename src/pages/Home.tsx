@@ -10,10 +10,12 @@ import FAQSection from '@/components/home/FAQSection';
 import PricingSection from '@/components/home/PricingSection';
 import CTASection from '@/components/home/CTASection';
 import ElevenLabsChatbot from '@/components/ElevenLabsChatbot';
+import EmailCTAModal from '@/components/home/EmailCTAModal';
 
 export default function Home() {
   return (
     <main>
+      <EmailCTAModal />
       <HeroSection />
       <LiveTicker />
       <FeaturesSection />
