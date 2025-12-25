@@ -12,12 +12,16 @@
   ],
   "routes": [
     { "src": "/api/credit-builder/?", "dest": "/api/credit-builder.ts" },
+    { "src": "/api/credit-builder-track/?", "dest": "/api/credit-builder-track.ts" },
     { "src": "/api/daily-login-bonus/?", "dest": "/api/daily-login-bonus.ts" },
     { "src": "/api/create-checkout-session/?", "dest": "/api/create-checkout-session.ts" },
     { "src": "/api/stripe-webhook/?", "dest": "/api/stripe-webhook.ts" },
     { "src": "/api/upload/?", "dest": "/api/upload.ts" },
     { "src": "/api/user/credits/?", "dest": "/api/user/credits.ts" },
     { "src": "/api/user/files/?", "dest": "/api/user/files.ts" },
+    { "src": "/api/templates/save/?", "dest": "/api/templates/save.ts" },
+    { "src": "/api/templates/list/?", "dest": "/api/templates/list.ts" },
+    { "src": "/api/templates/delete/?", "dest": "/api/templates/delete.ts" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
 
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
