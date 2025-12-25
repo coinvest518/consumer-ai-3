@@ -22,6 +22,8 @@
     { "src": "/api/templates/save/?", "dest": "/api/templates/save.ts" },
     { "src": "/api/templates/list/?", "dest": "/api/templates/list.ts" },
     { "src": "/api/templates/delete/?", "dest": "/api/templates/delete.ts" },
+    { "src": "/api/email-cta/?", "dest": "/api/email-cta.ts" },
+    { "src": "/api/health/?", "dest": "/api/health.js" },
     { "src": "/api/(.*)", "dest": "https://consumer-ai-render.onrender.com/$1" },
 
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
