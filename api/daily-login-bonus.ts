@@ -132,31 +132,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ error: 'Failed to award credits', details: updateError.message });
     }
 
-    // Emit Socket.IO events via HTTP request to Render service
-    const renderApiUrl = process.env.RENDER_API_URL || 'https://consumer-ai-render.onrender.com';
-    const emitEventUrl = `${renderApiUrl}/api/emit-event`;
-
-    try {
-      await fetch(emitEventUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event: 'credits-updated',
-          userId: userId,
-          data: {
-            creditsAwarded: totalCredits,
-            source: 'daily-login',
-            streakCount: streakCount,
-            totalCredits: userCredit ? userCredit.credits + totalCredits : totalCredits
-          }
-        })
-      });
-    } catch (socketError) {
-      console.error('Error emitting daily login event:', socketError);
-    }
-
     return res.status(200).json({
       success: true,
       creditsAwarded: totalCredits,
