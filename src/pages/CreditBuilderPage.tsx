@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCredits } from "@/hooks/useCredits";
+import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { Building, Shield, TrendingUp, DollarSign, CreditCard, Verified, Star, Award, Zap, Target, BookOpen, Users, Calendar, CheckCircle, X, Mail, Phone, MessageSquare } from 'lucide-react';
 import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
@@ -223,24 +224,30 @@ export default function CreditBuilderPage() {
     });
 
   const handleClick = async (builder: CreditBuilder) => {
+    window.open(builder.link, "_blank");
+    
     if (!user) {
-      toast({ title: "Login required", description: "Please log in to earn credits." });
+      toast({ title: "Visit the offer", description: "Log in to earn credits." });
       return;
     }
+    
     try {
-      await fetch("/api/credit-builder-track", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ builderId: builder.id, userId: user.id, points: builder.points }),
-      });
+      const { data: existingCredits } = await supabase
+        .from('user_credits')
+        .select('credits')
+        .eq('user_id', user.id)
+        .single();
+
+      const newCredits = (existingCredits?.credits || 0) + builder.points;
+
+      await supabase
+        .from('user_credits')
+        .upsert({ user_id: user.id, credits: newCredits, updated_at: new Date().toISOString() });
       
-      // Refresh credits to show the update immediately
       await refreshCredits();
-      
-      window.open(builder.link, "_blank");
       toast({ title: "Credits Awarded!", description: `You earned ${builder.points} credits.` });
     } catch (e) {
-      toast({ title: "Error", description: "Could not track or award credits." });
+      console.error('Credit tracking error:', e);
     }
   };
 
