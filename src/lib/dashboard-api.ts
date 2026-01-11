@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+// Dashboard API - uses frontend API endpoints instead of direct Supabase queries
 
 // Dispute Types
 export interface Dispute {
@@ -64,196 +64,236 @@ export interface CalendarEvent {
 // Disputes API
 export const disputesApi = {
   async getAll(userId: string) {
-    const { data, error } = await supabase
-      .from('disputes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data as Dispute[];
+    const response = await fetch('/api/disputes', {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch disputes');
+    const result = await response.json();
+    return result.data as Dispute[];
   },
 
   async create(dispute: Omit<Dispute, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('disputes')
-      .insert(dispute)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as Dispute;
+    const response = await fetch('/api/disputes', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': dispute.user_id 
+      },
+      body: JSON.stringify(dispute)
+    });
+    if (!response.ok) throw new Error('Failed to create dispute');
+    const result = await response.json();
+    return result.data as Dispute;
   },
 
   async update(id: string, updates: Partial<Dispute>) {
-    const { data, error } = await supabase
-      .from('disputes')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as Dispute;
+    const response = await fetch('/api/disputes', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': updates.user_id || '' 
+      },
+      body: JSON.stringify({ id, ...updates })
+    });
+    if (!response.ok) throw new Error('Failed to update dispute');
+    const result = await response.json();
+    return result.data as Dispute;
   },
 
-  async delete(id: string) {
-    const { error } = await supabase
-      .from('disputes')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+  async delete(id: string, userId: string) {
+    const response = await fetch('/api/disputes', {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      },
+      body: JSON.stringify({ id })
+    });
+    if (!response.ok) throw new Error('Failed to delete dispute');
   }
 };
 
 // Certified Mail API
 export const certifiedMailApi = {
   async getAll(userId: string) {
-    const { data, error } = await supabase
-      .from('certified_mail')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date_mailed', { ascending: false });
-    
-    if (error) throw error;
-    return data as CertifiedMail[];
+    const response = await fetch('/api/certified-mail', {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch certified mail');
+    const result = await response.json();
+    return result.data as CertifiedMail[];
   },
 
   async create(mail: Omit<CertifiedMail, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('certified_mail')
-      .insert(mail)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as CertifiedMail;
+    const response = await fetch('/api/certified-mail', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': mail.user_id 
+      },
+      body: JSON.stringify(mail)
+    });
+    if (!response.ok) throw new Error('Failed to create mail record');
+    const result = await response.json();
+    return result.data as CertifiedMail;
   },
 
   async update(id: string, updates: Partial<CertifiedMail>) {
-    const { data, error } = await supabase
-      .from('certified_mail')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as CertifiedMail;
+    const response = await fetch('/api/certified-mail', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': updates.user_id || '' 
+      },
+      body: JSON.stringify({ id, ...updates })
+    });
+    if (!response.ok) throw new Error('Failed to update mail record');
+    const result = await response.json();
+    return result.data as CertifiedMail;
   },
 
-  async delete(id: string) {
-    const { error } = await supabase
-      .from('certified_mail')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+  async delete(id: string, userId: string) {
+    const response = await fetch('/api/certified-mail', {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      },
+      body: JSON.stringify({ id })
+    });
+    if (!response.ok) throw new Error('Failed to delete mail record');
   }
 };
 
 // Complaints API
 export const complaintsApi = {
   async getAll(userId: string) {
-    const { data, error } = await supabase
-      .from('complaints')
-      .select('*')
-      .eq('user_id', userId)
-      .order('date_filed', { ascending: false });
-    
-    if (error) throw error;
-    return data as Complaint[];
+    const response = await fetch('/api/complaints', {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch complaints');
+    const result = await response.json();
+    return result.data as Complaint[];
   },
 
   async create(complaint: Omit<Complaint, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('complaints')
-      .insert(complaint)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as Complaint;
+    const response = await fetch('/api/complaints', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': complaint.user_id 
+      },
+      body: JSON.stringify(complaint)
+    });
+    if (!response.ok) throw new Error('Failed to create complaint');
+    const result = await response.json();
+    return result.data as Complaint;
   },
 
   async update(id: string, updates: Partial<Complaint>) {
-    const { data, error } = await supabase
-      .from('complaints')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as Complaint;
+    const response = await fetch('/api/complaints', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': updates.user_id || '' 
+      },
+      body: JSON.stringify({ id, ...updates })
+    });
+    if (!response.ok) throw new Error('Failed to update complaint');
+    const result = await response.json();
+    return result.data as Complaint;
   },
 
-  async delete(id: string) {
-    const { error } = await supabase
-      .from('complaints')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+  async delete(id: string, userId: string) {
+    const response = await fetch('/api/complaints', {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      },
+      body: JSON.stringify({ id })
+    });
+    if (!response.ok) throw new Error('Failed to delete complaint');
   }
 };
 
 // Calendar Events API
 export const calendarEventsApi = {
   async getAll(userId: string) {
-    const { data, error } = await supabase
-      .from('calendar_events')
-      .select('*')
-      .eq('user_id', userId)
-      .order('event_date', { ascending: true });
-    
-    if (error) throw error;
-    return data as CalendarEvent[];
+    const response = await fetch('/api/calendar-events', {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch calendar events');
+    const result = await response.json();
+    return result.data as CalendarEvent[];
   },
 
   async getByDateRange(userId: string, startDate: string, endDate: string) {
-    const { data, error } = await supabase
-      .from('calendar_events')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('event_date', startDate)
-      .lte('event_date', endDate)
-      .order('event_date', { ascending: true });
-    
-    if (error) throw error;
-    return data as CalendarEvent[];
+    const response = await fetch(`/api/calendar-events?startDate=${startDate}&endDate=${endDate}`, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      }
+    });
+    if (!response.ok) throw new Error('Failed to fetch calendar events');
+    const result = await response.json();
+    return result.data as CalendarEvent[];
   },
 
   async create(event: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('calendar_events')
-      .insert(event)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as CalendarEvent;
+    const response = await fetch('/api/calendar-events', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': event.user_id 
+      },
+      body: JSON.stringify(event)
+    });
+    if (!response.ok) throw new Error('Failed to create calendar event');
+    const result = await response.json();
+    return result.data as CalendarEvent;
   },
 
   async update(id: string, updates: Partial<CalendarEvent>) {
-    const { data, error } = await supabase
-      .from('calendar_events')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as CalendarEvent;
+    const response = await fetch('/api/calendar-events', {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': updates.user_id || '' 
+      },
+      body: JSON.stringify({ id, ...updates })
+    });
+    if (!response.ok) throw new Error('Failed to update calendar event');
+    const result = await response.json();
+    return result.data as CalendarEvent;
   },
 
-  async delete(id: string) {
-    const { error } = await supabase
-      .from('calendar_events')
-      .delete()
-      .eq('id', id);
-    
-    if (error) throw error;
+  async delete(id: string, userId: string) {
+    const response = await fetch('/api/calendar-events', {
+      method: 'DELETE',
+      headers: { 
+        'Content-Type': 'application/json',
+        'user-id': userId 
+      },
+      body: JSON.stringify({ id })
+    });
+    if (!response.ok) throw new Error('Failed to delete calendar event');
   }
 };
