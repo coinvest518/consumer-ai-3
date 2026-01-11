@@ -64,7 +64,7 @@ export interface CalendarEvent {
 // Disputes API
 export const disputesApi = {
   async getAll(userId: string) {
-    const response = await fetch('/api/disputes', {
+    const response = await fetch('/api/dashboard?table=disputes', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ export const disputesApi = {
   },
 
   async create(dispute: Omit<Dispute, 'id' | 'created_at' | 'updated_at'>) {
-    const response = await fetch('/api/disputes', {
+    const response = await fetch('/api/dashboard?table=disputes', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ export const disputesApi = {
   },
 
   async update(id: string, updates: Partial<Dispute>) {
-    const response = await fetch('/api/disputes', {
+    const response = await fetch('/api/dashboard?table=disputes', {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ export const disputesApi = {
   },
 
   async delete(id: string, userId: string) {
-    const response = await fetch('/api/disputes', {
+    const response = await fetch('/api/dashboard?table=disputes', {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -120,7 +120,7 @@ export const disputesApi = {
 // Certified Mail API
 export const certifiedMailApi = {
   async getAll(userId: string) {
-    const response = await fetch('/api/certified-mail', {
+    const response = await fetch('/api/dashboard?table=certified_mail', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -133,7 +133,7 @@ export const certifiedMailApi = {
   },
 
   async create(mail: Omit<CertifiedMail, 'id' | 'created_at' | 'updated_at'>) {
-    const response = await fetch('/api/certified-mail', {
+    const response = await fetch('/api/dashboard?table=certified_mail', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -147,7 +147,7 @@ export const certifiedMailApi = {
   },
 
   async update(id: string, updates: Partial<CertifiedMail>) {
-    const response = await fetch('/api/certified-mail', {
+    const response = await fetch('/api/dashboard?table=certified_mail', {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export const certifiedMailApi = {
   },
 
   async delete(id: string, userId: string) {
-    const response = await fetch('/api/certified-mail', {
+    const response = await fetch('/api/dashboard?table=certified_mail', {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -176,7 +176,7 @@ export const certifiedMailApi = {
 // Complaints API
 export const complaintsApi = {
   async getAll(userId: string) {
-    const response = await fetch('/api/complaints', {
+    const response = await fetch('/api/dashboard?table=complaints', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ export const complaintsApi = {
   },
 
   async create(complaint: Omit<Complaint, 'id' | 'created_at' | 'updated_at'>) {
-    const response = await fetch('/api/complaints', {
+    const response = await fetch('/api/dashboard?table=complaints', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ export const complaintsApi = {
   },
 
   async update(id: string, updates: Partial<Complaint>) {
-    const response = await fetch('/api/complaints', {
+    const response = await fetch('/api/dashboard?table=complaints', {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ export const complaintsApi = {
   },
 
   async delete(id: string, userId: string) {
-    const response = await fetch('/api/complaints', {
+    const response = await fetch('/api/dashboard?table=complaints', {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
@@ -232,7 +232,7 @@ export const complaintsApi = {
 // Calendar Events API
 export const calendarEventsApi = {
   async getAll(userId: string) {
-    const response = await fetch('/api/calendar-events', {
+    const response = await fetch('/api/dashboard?table=calendar_events', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ export const calendarEventsApi = {
   },
 
   async getByDateRange(userId: string, startDate: string, endDate: string) {
-    const response = await fetch(`/api/calendar-events?startDate=${startDate}&endDate=${endDate}`, {
+    const response = await fetch(`/api/dashboard?table=calendar_events&startDate=${startDate}&endDate=${endDate}`, {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ export const calendarEventsApi = {
   },
 
   async create(event: Omit<CalendarEvent, 'id' | 'created_at' | 'updated_at'>) {
-    const response = await fetch('/api/calendar-events', {
+    const response = await fetch('/api/dashboard?table=calendar_events', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ export const calendarEventsApi = {
   },
 
   async update(id: string, updates: Partial<CalendarEvent>) {
-    const response = await fetch('/api/calendar-events', {
+    const response = await fetch('/api/dashboard?table=calendar_events', {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -286,7 +286,7 @@ export const calendarEventsApi = {
   },
 
   async delete(id: string, userId: string) {
-    const response = await fetch('/api/calendar-events', {
+    const response = await fetch('/api/dashboard?table=calendar_events', {
       method: 'DELETE',
       headers: { 
         'Content-Type': 'application/json',
