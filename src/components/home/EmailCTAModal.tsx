@@ -23,7 +23,7 @@ export default function EmailCTAModal() {
       const timer = setTimeout(() => {
         setIsOpen(true);
         localStorage.setItem('emailCTA_seen', 'true');
-      }, 10000); // Changed to 1 second for testing
+      }, 3000); // 3 seconds - faster popup
       return () => clearTimeout(timer);
     }
   }, []);
@@ -98,7 +98,7 @@ export default function EmailCTAModal() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             onClick={handleClose}
             className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
           />
@@ -109,7 +109,7 @@ export default function EmailCTAModal() {
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
-              transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ duration: 0.2, type: 'spring', stiffness: 400, damping: 30 }}
               className="pointer-events-auto w-full max-w-md"
             >
               <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
@@ -128,7 +128,7 @@ export default function EmailCTAModal() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
+                    transition={{ delay: 0.05 }}
                     className="text-center mb-8"
                   >
                     <div className="inline-block bg-gradient-to-r from-primary/10 to-blue-100 px-4 py-2 rounded-full mb-4">
@@ -146,7 +146,7 @@ export default function EmailCTAModal() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
+                    transition={{ delay: 0.08 }}
                     className="bg-gradient-to-br from-primary/5 via-blue-50 to-indigo-50 p-5 rounded-xl mb-7 border border-primary/10"
                   >
                     <ul className="space-y-3">
@@ -170,7 +170,7 @@ export default function EmailCTAModal() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.1 }}
                     >
                       <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2.5">
                         Your Email Address
@@ -200,7 +200,7 @@ export default function EmailCTAModal() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: 0.25 }}
+                      transition={{ delay: 0.12 }}
                       className="space-y-3 pt-2"
                     >
                       <Button
@@ -231,7 +231,7 @@ export default function EmailCTAModal() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: 0.15 }}
                     className="mt-8 pt-6 border-t border-gray-200"
                   >
                     <p className="text-xs font-semibold text-gray-700 text-center mb-4 uppercase tracking-wide">
@@ -290,7 +290,7 @@ export default function EmailCTAModal() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={{ delay: 0.1 }}
                     className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 mb-5"
                   >
                     <p className="text-sm font-bold text-green-900">

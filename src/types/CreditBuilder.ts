@@ -72,7 +72,7 @@ export const creditBuilders: CreditBuilder[] = [
   {
     id: 'rentreporter',
     title: "RentReporter",
-    link: "https://prf.hn/click/camref:1101l3G9fN",
+    link: "https://prf.hn/l/K3wvaqJ",
     description: "Use our link to get a free discount. Report rent payments to build credit.",
     points: 55,
     icon: null,

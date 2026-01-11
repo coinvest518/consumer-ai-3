@@ -206,10 +206,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.error('Background profile creation failed:', error);
         });
 
-        // Check for daily login bonus (non-blocking)
-        checkDailyLoginBonus(currentSession.user.id).catch(error => {
-          console.error('Daily login bonus check failed:', error);
-        });
+        // Note: Daily login bonus removed from auto-trigger to prevent 403 errors
+        // Users can claim it manually via the CreditsDisplay component
       } else {
         setUser(null);
       }

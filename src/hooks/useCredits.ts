@@ -49,32 +49,20 @@ export function useCredits() {
     }
   }, [user]);
 
-  // Check daily login status
+  // Check daily login status  
   const checkDailyLoginStatus = useCallback(async () => {
     if (!user) return;
 
     try {
+      // Instead of direct database query, use a simple date check
+      // The actual status will be confirmed when user tries to claim
+      const lastClaimedDate = localStorage.getItem(`lastDailyLogin_${user.id}`);
       const today = new Date().toISOString().split('T')[0];
-
-      const { data, error } = await supabase
-        .from('daily_login_bonuses')
-        .select('streak_count, login_date')
-        .eq('user_id', user.id)
-        .order('login_date', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error checking daily login:', error);
-        return;
-      }
-
-      const lastLogin = data?.[0];
-      const claimedToday = lastLogin?.login_date === today;
-
+      
       setDailyLoginStatus({
-        claimedToday,
-        streakCount: lastLogin?.streak_count || 0,
-        lastLoginDate: lastLogin?.login_date || null
+        claimedToday: lastClaimedDate === today,
+        streakCount: 0, // Will be updated when claiming
+        lastLoginDate: lastClaimedDate
       });
     } catch (error) {
       console.error('Error checking daily login status:', error);
@@ -113,6 +101,10 @@ export function useCredits() {
           claimedToday: true,
           streakCount: data.streakCount
         }));
+
+        // Store in localStorage for persistent checking
+        const today = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`lastDailyLogin_${user.id}`, today);
 
         return data;
       }

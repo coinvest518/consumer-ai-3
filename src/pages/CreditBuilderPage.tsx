@@ -232,22 +232,32 @@ export default function CreditBuilderPage() {
     }
     
     try {
-      const { data: existingCredits } = await supabase
-        .from('user_credits')
-        .select('credits')
-        .eq('user_id', user.id)
-        .single();
+      // Use the API endpoint instead of direct database access to avoid RLS issues
+      const response = await fetch('/api/credit-builder-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user.id, 
+          builderId: builder.id, 
+          points: builder.points 
+        }),
+      });
 
-      const newCredits = (existingCredits?.credits || 0) + builder.points;
+      const data = await response.json();
 
-      await supabase
-        .from('user_credits')
-        .upsert({ user_id: user.id, credits: newCredits, updated_at: new Date().toISOString() });
-      
-      await refreshCredits();
-      toast({ title: "Credits Awarded!", description: `You earned ${builder.points} credits.` });
-    } catch (e) {
-      console.error('Credit tracking error:', e);
+      if (response.ok && data.success) {
+        await refreshCredits();
+        toast({ title: "Credits Awarded!", description: `You earned ${builder.points} credits.` });
+      } else {
+        throw new Error(data.error || 'Failed to award credits');
+      }
+    } catch (error) {
+      console.error('Credit tracking error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to award credits. Please try again.", 
+        variant: "destructive" 
+      });
     }
   };
 

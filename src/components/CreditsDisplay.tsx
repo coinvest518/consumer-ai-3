@@ -33,7 +33,7 @@ export default function CreditsDisplay({ compact = false }: CreditsDisplayProps)
       if (!user) return;
 
       try {
-        // Get paid credits from purchases
+        // Get paid credits from purchases only (avoid RLS issues with other tables)
         const { data: purchases, error: purchasesError } = await supabase
           .from('purchases')
           .select('credits')
@@ -42,35 +42,16 @@ export default function CreditsDisplay({ compact = false }: CreditsDisplayProps)
 
         if (purchasesError) {
           console.error('Error fetching purchases:', purchasesError);
+          // Fallback: assume all credits are earned
+          setEarnedCredits(userCredits);
+          setPaidCredits(0);
+          return;
         }
 
         const totalPaidCredits = purchases?.reduce((sum, purchase) => sum + (purchase.credits || 0), 0) || 0;
 
-        // Get earned credits from credit builder clicks
-        const { data: creditClicks, error: clicksError } = await supabase
-          .from('credit_builder_clicks')
-          .select('id')
-          .eq('user_id', user.id);
-
-        if (clicksError) {
-          console.error('Error fetching credit clicks:', clicksError);
-        }
-
-        // Get earned credits from daily login bonuses
-        const { data: dailyBonuses, error: bonusesError } = await supabase
-          .from('daily_login_bonuses')
-          .select('credits_awarded')
-          .eq('user_id', user.id);
-
-        if (bonusesError) {
-          console.error('Error fetching daily bonuses:', bonusesError);
-        }
-
-        const totalEarnedCredits = (creditClicks?.length || 0) * 0 + // Credit builder clicks don't directly award credits
-                                   (dailyBonuses?.reduce((sum, bonus) => sum + bonus.credits_awarded, 0) || 0);
-
-        // For now, assume remaining credits are earned (this is a simplification)
-        // In a full implementation, you'd track all credit transactions
+        // For now, assume remaining credits are earned (avoid direct queries to problematic tables)
+        // The API endpoints handle credit awarding properly with service role permissions
         const calculatedEarnedCredits = Math.max(0, userCredits - totalPaidCredits);
 
         setPaidCredits(totalPaidCredits);

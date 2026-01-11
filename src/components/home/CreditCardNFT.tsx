@@ -71,7 +71,7 @@ export default function CreditCardNFT() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                Genesis NFT
+                Build Credit with Cryptocurrency
               </motion.h3>
             </div>
             <motion.div 

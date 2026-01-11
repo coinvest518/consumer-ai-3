@@ -39,7 +39,7 @@ const generateTickerData = (): TickerItem[] => [
   {
     id: 'nft-minted',
     icon: <Sparkles className="w-4 h-4" />,
-    label: 'Genesis NFTs Minted',
+    label: 'Genesis Credit Builder NFTs Minted',
     value: '3,421 / 10,000',
     trend: 'neutral',
   },
