@@ -10,7 +10,6 @@ const getApiBaseUrl = () => {
   if (typeof import.meta !== 'undefined' && import.meta.env) {
     if (import.meta.env.VITE_API_URL) {
       let url = import.meta.env.VITE_API_URL;
-      // Remove trailing /api if present
       if (url.endsWith('/api')) {
         url = url.replace(/\/api$/, '');
       }
@@ -18,8 +17,12 @@ const getApiBaseUrl = () => {
       return url;
     }
   }
-  // Default fallback for development
-  return 'https://consumer-ai-render.onrender.com';
+  // In production, use relative path (Vercel handles routing)
+  if (import.meta.env.PROD) {
+    return '';
+  }
+  // Development: use localhost
+  return 'http://localhost:3001';
 };
 
 // Get the API base URL
@@ -38,9 +41,12 @@ export const API_BASE_URL = API_BASE;
 // Returns the full API URL for a given endpoint (does NOT add /api twice)
 export const getApiUrl = (endpoint: string) => {
   let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  // Remove any /api prefix from endpoint to avoid double /api
   if (cleanEndpoint.startsWith('/api/')) {
     cleanEndpoint = cleanEndpoint.replace(/^\/api\//, '/');
+  }
+  // In production, use relative /api path
+  if (import.meta.env.PROD) {
+    return `/api${cleanEndpoint}`;
   }
   return `${API_BASE_URL}${cleanEndpoint}`;
 };

@@ -3,9 +3,9 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 // Create a server-side Supabase client using server env vars
 function getSupabaseClient() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseAnon = process.env.SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnon = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const supabaseKey = supabaseServiceKey || supabaseAnon;
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase environment variables on server');
@@ -15,7 +15,7 @@ function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseKey);
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
+const stripe = new Stripe(process.env.VITE_STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
 
 const PLAN_PRICE_IDS: Record<string, string> = {
   starter: 'price_1RHZCqE4H116aDHAxIjzdR6b', // $9.99 - 100 credits
