@@ -8,16 +8,27 @@ const PDF_URL = 'https://ffvvesrqtdktayjwurwm.supabase.co/storage/v1/object/publ
 const BOOKING_URL = 'https://cal.com/bookme-daniel/how-to-sue-debt-collectors-consultation'; // Update with your Calendly URL
 const PHONE = '518-229-9675';
 
-export default function EmailCTAModal() {
+interface EmailCTAModalProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function EmailCTAModal({ open, onOpenChange }: EmailCTAModalProps) {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean>(!!open);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-open modal after 3 seconds on first visit
+  // Sync controlled open prop if provided
   useEffect(() => {
+    if (typeof open === 'boolean') setIsOpen(open);
+  }, [open]);
+
+  // Auto-open modal after 3 seconds on first visit when not controlled
+  useEffect(() => {
+    if (typeof open === 'boolean') return; // skip auto behavior when controlled
     const hasSeenModal = localStorage.getItem('emailCTA_seen');
     if (!hasSeenModal) {
       const timer = setTimeout(() => {
@@ -26,7 +37,7 @@ export default function EmailCTAModal() {
       }, 3000); // 3 seconds - faster popup
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [open]);
 
   // Auto-close modal after 5 seconds if not interacting
   useEffect(() => {
@@ -64,6 +75,29 @@ export default function EmailCTAModal() {
       const data = await response.json();
       setSubmitted(true);
 
+      // Trigger PDF download — prefer server-provided URL, fallback to constant
+      try {
+        const downloadUrl = data?.pdfUrl || PDF_URL;
+        if (downloadUrl) {
+          // Try to force download via temporary anchor
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          // Some browsers respect download, but cross-origin may block; open in new tab as fallback
+          try {
+            a.download = '';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } catch (e) {
+            window.open(downloadUrl, '_blank');
+          }
+        }
+      } catch (err) {
+        console.error('PDF download failed:', err);
+      }
+
       // Auto-close after 3 seconds following successful submission
       setTimeout(() => {
         setIsOpen(false);
@@ -83,6 +117,7 @@ export default function EmailCTAModal() {
 
   const handleClose = () => {
     setIsOpen(false);
+    if (onOpenChange) onOpenChange(false);
     setTimeout(() => {
       setSubmitted(false);
       setEmail('');

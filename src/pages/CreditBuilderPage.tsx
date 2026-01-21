@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { Building, Shield, TrendingUp, DollarSign, CreditCard, Verified, Star, Award, Zap, Target, BookOpen, Users, Calendar, CheckCircle, X, Mail, Phone, MessageSquare } from 'lucide-react';
 import ElevenLabsChatbot from "@/components/ElevenLabsChatbot";
+import EmailCTAModal from '@/components/home/EmailCTAModal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,6 +61,7 @@ export default function CreditBuilderPage() {
   const isMobile = useIsMobile();
   const { refreshCredits } = useCredits();
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const [questionnaireStep, setQuestionnaireStep] = useState(1);
   const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({
     name: '',
@@ -204,7 +206,7 @@ export default function CreditBuilderPage() {
     }
   ];
 
-  // Filter out tradelines from credit builders
+  // Filter out tradelines from credit builders and append our custom partners
   const creditBuilders: CreditBuilder[] = baseCreditBuilders
     .filter(b => b.id !== 'tradelines')
     .map((b) => {
@@ -222,6 +224,57 @@ export default function CreditBuilderPage() {
       }
       return { ...b, icon };
     });
+
+  // Custom partner offers to show in the Free Credit Building grid
+  const customBuilders: CreditBuilder[] = [
+    {
+      id: 'credit-repair-cloud',
+      title: 'CREDIT REPAIR CLOUD',
+      link: 'https://get.creditrepaircloud.com/naq3utx717o0',
+      description: 'Start a credit repair business — book a free webinar with our partner.',
+      points: 120,
+      icon: <Building className="w-6 h-6" />, 
+      gradient: 'from-indigo-600 to-indigo-700'
+    },
+    {
+      id: 'ava-finance',
+      title: 'AVA Finance – Credit Builder',
+      link: 'https://meetava.sjv.io/anDyvY',
+      description: 'Credit building starting at $8 — use our link for a discount.',
+      points: 40,
+      icon: <DollarSign className="w-6 h-6" />,
+      gradient: 'from-emerald-500 to-emerald-600'
+    },
+    {
+      id: 'idiq-securemax',
+      title: 'IdentityIQ SecureMax',
+      link: 'https://www.identityiq.com/sc-securemax.aspx?offercode=4312970S',
+      description: 'Credit monitoring & security — No Trial option ($32.86/mo).',
+      points: 25,
+      icon: <Shield className="w-6 h-6" />,
+      gradient: 'from-rose-500 to-rose-600'
+    },
+    {
+      id: 'idiq-securepreferred',
+      title: 'IdentityIQ SecurePreferred',
+      link: 'https://www.identityiq.com/securepreferred.aspx?offercode=4312970R',
+      description: 'Credit monitoring & reports — $1 trial available ($26.86 after).',
+      points: 30,
+      icon: <Shield className="w-6 h-6" />,
+      gradient: 'from-fuchsia-500 to-fuchsia-600'
+    },
+    {
+      id: 'public-referral',
+      title: 'Public – Free Stock',
+      link: 'https://public.com/user-referral?referrer=Investor703044',
+      description: 'Get free stock when you sign up through our referral.',
+      points: 20,
+      icon: <Users className="w-6 h-6" />,
+      gradient: 'from-yellow-400 to-yellow-500'
+    }
+  ];
+
+  const shownBuilders = [...creditBuilders, ...customBuilders];
 
   const handleClick = async (builder: CreditBuilder) => {
     window.open(builder.link, "_blank");
@@ -268,23 +321,32 @@ export default function CreditBuilderPage() {
 
   const handleQuestionnaireSubmit = async () => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // If user not logged in, open the email CTA modal so guest can get the free PDF
+      if (!user) {
+        setShowEmailModal(true);
+        return;
+      }
+      // Submit questionnaire to server to send email and log
+      const body = { ...questionnaireData, userId: user?.id };
+      const resp = await fetch('/api/send-questionnaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-      // Log the data for demo purposes (in real app, this would go to backend)
-      console.log('Questionnaire submitted:', questionnaireData);
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err?.error || 'Submission failed');
+      }
 
       toast({
         title: "Questionnaire Submitted!",
-        description: "We'll contact you within 24 hours to discuss your options."
+        description: "We've emailed your responses — we'll contact you within 24 hours."
       });
 
       setShowQuestionnaire(false);
       setQuestionnaireStep(1);
-      setQuestionnaireData({
-        name: '', email: '', phone: '', creditScore: '', goals: '',
-        timeline: '', experience: '', budget: '', additionalInfo: ''
-      });
+      setQuestionnaireData({ name: '', email: '', phone: '', creditScore: '', goals: '', timeline: '', experience: '', budget: '', additionalInfo: '' });
     } catch (error) {
       toast({
         title: "Error",
@@ -412,7 +474,7 @@ export default function CreditBuilderPage() {
         </div>
 
         {/* Free Credit Builder Grid */}
-        <div className="mb-20">
+        <div id="free-credit-building" className="mb-20">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Star className="w-4 h-4" />
@@ -425,7 +487,7 @@ export default function CreditBuilderPage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {creditBuilders.map((builder, index) => (
+            {shownBuilders.map((builder, index) => (
               <HoverCard key={builder.id}>
                 <HoverCardTrigger asChild>
                   <Card className={`group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer bg-gradient-to-br ${builder.gradient} text-white hover:scale-[1.02] ${isMobile ? 'hover:scale-100' : ''} h-full flex flex-col`}>
@@ -487,7 +549,12 @@ export default function CreditBuilderPage() {
                           onClick={() => handleClick(builder)}
                         >
                           <Zap className="w-4 h-4 mr-2" />
-                          Visit & Earn Credits
+                          {builder.id === 'credit-repair-cloud' ? 'Book Free Webinar'
+                            : builder.id === 'ava-finance' ? 'Get Discount'
+                            : builder.id === 'public-referral' ? 'Get Free Stock'
+                            : builder.id.startsWith('idiq') ? (builder.id === 'idiq-securepreferred' ? '$1 Trial' : 'Learn More')
+                            : 'Visit & Earn Credits'
+                          }
                         </Button>
                       </div>
                     </CardContent>
@@ -603,13 +670,22 @@ export default function CreditBuilderPage() {
                 Whether you choose free credit building or premium tradeline services, we're here to help you achieve your financial goals.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg h-12">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg h-12"
+                  onClick={() => window.open('https://whop.com/futuristicwealth/', '_blank')}
+                >
                   <CreditCard className="w-5 h-5 mr-2" />
                   Explore Free Options
                 </Button>
-                <Button size="lg" variant="outline" className="border-slate-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800 h-12">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-slate-300 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800 h-12"
+                  onClick={() => window.open('https://cal.com/bookme-daniel', '_blank')}
+                >
                   <Phone className="w-5 h-5 mr-2" />
-                  Schedule Consultation
+                  Book Consultation
                 </Button>
               </div>
             </CardContent>
@@ -824,6 +900,7 @@ export default function CreditBuilderPage() {
       </Dialog>
 
       <ElevenLabsChatbot />
+      <EmailCTAModal open={showEmailModal} onOpenChange={setShowEmailModal} />
     </div>
   );
 }
