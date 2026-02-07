@@ -5,7 +5,6 @@ import { PlayCircle, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { VideoModal } from "@/components/ui/VideoModal";
-import CreditCardNFT from "./CreditCardNFT";
 
 export default function HeroSection() {
   const { user } = useAuth();
@@ -80,7 +79,7 @@ export default function HeroSection() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <CreditCardNFT />
+            {/* NFT Card removed */}
           </motion.div>
         </div>
       </div>

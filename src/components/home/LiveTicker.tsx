@@ -37,21 +37,6 @@ const generateTickerData = (): TickerItem[] => [
     highlight: true,
   },
   {
-    id: 'nft-minted',
-    icon: <Sparkles className="w-4 h-4" />,
-    label: 'Genesis Credit Builder NFTs Minted',
-    value: '3,421 / 10,000',
-    trend: 'neutral',
-  },
-  {
-    id: 'yield-apy',
-    icon: <Coins className="w-4 h-4" />,
-    label: 'YieldBot APY',
-    value: '12.4%',
-    trend: 'up',
-    highlight: true,
-  },
-  {
     id: 'response-time',
     icon: <Zap className="w-4 h-4" />,
     label: 'AI Response Time',
