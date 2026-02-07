@@ -20,19 +20,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Link } from "react-router-dom";
 
-interface TradelineProduct {
-  id: string;
-  name: string;
-  bank: string;
-  limit: string;
-  price: number;
-  originalPrice: number;
-  benefits: string[];
-  accountAge: string;
-  gradient: string;
-  logo: string;
-}
-
 interface BlogPost {
   id: string;
   title: string;
@@ -75,112 +62,12 @@ export default function CreditBuilderPage() {
     additionalInfo: ''
   });
 
-  // Tradeline products data
-  const tradelineProducts: TradelineProduct[] = [
-    {
-      id: 'cp1-5000',
-      name: 'CP1 Tradeline',
-      bank: 'Capital One',
-      limit: '$5,000',
-      price: 427,
-      originalPrice: 327,
-      benefits: ['Low-cost entry', 'Solid account age', 'Lower utilization', 'Positive history'],
-      accountAge: 'June 2021',
-      gradient: 'from-blue-500 to-blue-600',
-      logo: '🏦'
-    },
-    {
-      id: 'chase-5900',
-      name: 'Chase Tradeline',
-      bank: 'Chase',
-      limit: '$5,900',
-      price: 427,
-      originalPrice: 327,
-      benefits: ['Major bank credibility', 'Higher limit', 'Bank card mix', 'Auto approvals'],
-      accountAge: '2020',
-      gradient: 'from-red-500 to-red-600',
-      logo: '🏦'
-    },
-    {
-      id: 'discover-3000',
-      name: 'Discover Tradeline',
-      bank: 'Discover',
-      limit: '$3,000',
-      price: 451,
-      originalPrice: 351,
-      benefits: ['Older account', 'Rebuilding credit', 'Length of history', 'Recover from issues'],
-      accountAge: '2020',
-      gradient: 'from-orange-500 to-orange-600',
-      logo: '🏦'
-    },
-    {
-      id: 'chase-6500',
-      name: 'Chase Tradeline',
-      bank: 'Chase',
-      limit: '$6,500',
-      price: 480,
-      originalPrice: 380,
-      benefits: ['Age & limit balance', 'Mid-tier option', 'Faster score jump', 'Loan approvals'],
-      accountAge: '2019',
-      gradient: 'from-red-600 to-red-700',
-      logo: '🏦'
-    },
-    {
-      id: 'discover-10000',
-      name: 'Discover Tradeline',
-      bank: 'Discover',
-      limit: '$10,000',
-      price: 480,
-      originalPrice: 380,
-      benefits: ['High limit', 'Strong impact', 'Utilization reduction', 'Score stability'],
-      accountAge: '2018',
-      gradient: 'from-orange-600 to-orange-700',
-      logo: '🏦'
-    },
-    {
-      id: 'barclays-10000',
-      name: 'Barclays Tradeline',
-      bank: 'Barclays',
-      limit: '$10,000',
-      price: 509,
-      originalPrice: 409,
-      benefits: ['International presence', 'Lender diversity', 'Creditworthiness', 'Business funding'],
-      accountAge: '2017',
-      gradient: 'from-purple-500 to-purple-600',
-      logo: '🏦'
-    },
-    {
-      id: 'cp1-15000',
-      name: 'CP1 Tradeline',
-      bank: 'Capital One',
-      limit: '$15,000',
-      price: 509,
-      originalPrice: 409,
-      benefits: ['High limit & age', 'Strong impact', 'Big utilization drop', '700+ scores'],
-      accountAge: '2016',
-      gradient: 'from-blue-600 to-blue-700',
-      logo: '🏦'
-    },
-    {
-      id: 'chase-20000',
-      name: 'Chase Tradeline',
-      bank: 'Chase',
-      limit: '$20,000+',
-      price: 597,
-      originalPrice: 497,
-      benefits: ['Top-tier tradeline', 'Maximum relief', 'Lender confidence', 'Business credit'],
-      accountAge: '2015',
-      gradient: 'from-red-700 to-red-800',
-      logo: '🏦'
-    }
-  ];
-
   // Blog posts data
   const blogPosts: BlogPost[] = [
     {
       id: '1',
-      title: 'How Tradelines Work: A Complete Guide to Credit Building',
-      excerpt: 'Understanding how authorized user tradelines can transform your credit score and financial future.',
+      title: 'Credit Building Strategies: A Complete Guide',
+      excerpt: 'Understanding different approaches to improve your credit score and financial future.',
       date: 'Dec 21, 2024',
       readTime: '5 min read',
       category: 'Credit Education',
@@ -208,18 +95,14 @@ export default function CreditBuilderPage() {
 
   // Filter out tradelines from credit builders and append our custom partners
   const creditBuilders: CreditBuilder[] = baseCreditBuilders
-    .filter(b => b.id !== 'tradelines')
     .map((b) => {
       let icon = null;
       switch (b.id) {
         case 'chime': icon = <Building className="w-6 h-6" />; break;
         case 'self': icon = <Shield className="w-6 h-6" />; break;
-        case 'kickoff': icon = <TrendingUp className="w-6 h-6" />; break;
-        case 'brigit': icon = <DollarSign className="w-6 h-6" />; break;
         case 'growcredit': icon = <TrendingUp className="w-6 h-6" />; break;
         case 'creditstrong': icon = <Shield className="w-6 h-6" />; break;
         case 'rentreporter': icon = <Building className="w-6 h-6" />; break;
-        case 'atlas': icon = <CreditCard className="w-6 h-6" />; break;
         default: icon = null;
       }
       return { ...b, icon };
@@ -264,10 +147,10 @@ export default function CreditBuilderPage() {
       gradient: 'from-fuchsia-500 to-fuchsia-600'
     },
     {
-      id: 'public-referral',
-      title: 'Public – Free Stock',
-      link: 'https://public.com/user-referral?referrer=Investor703044',
-      description: 'Get free stock when you sign up through our referral.',
+      id: 'robinhood-referral',
+      title: 'Robinhood – Free Stocks 🎁',
+      link: 'https://join.robinhood.com/divonw',
+      description: 'Get free stocks when you sign up through our referral.',
       points: 20,
       icon: <Users className="w-6 h-6" />,
       gradient: 'from-yellow-400 to-yellow-500'
@@ -312,11 +195,6 @@ export default function CreditBuilderPage() {
         variant: "destructive" 
       });
     }
-  };
-
-  const handleTradelineInterest = (product: TradelineProduct) => {
-    setShowQuestionnaire(true);
-    setQuestionnaireStep(1);
   };
 
   const handleQuestionnaireSubmit = async () => {
@@ -385,7 +263,7 @@ export default function CreditBuilderPage() {
             Build Your Credit Score
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Discover premium credit building opportunities and professional tradeline services. Earn credits while improving your financial future with our curated selection of top-rated services.
+            Discover premium credit building opportunities. Earn credits while improving your financial future with our curated selection of top-rated services.
           </p>
 
           {/* Stats Overview */}
@@ -409,8 +287,8 @@ export default function CreditBuilderPage() {
             <Card className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardContent className="p-6 text-center">
                 <CreditCard className="w-8 h-8 mx-auto mb-3 opacity-90" />
-                <div className="text-2xl font-bold mb-1">{tradelineProducts.length}</div>
-                <div className="text-sm opacity-90">Tradeline Options</div>
+                <div className="text-2xl font-bold mb-1">{creditBuilders.length}</div>
+                <div className="text-sm opacity-90">Credit Building Options</div>
               </CardContent>
             </Card>
 
@@ -551,7 +429,7 @@ export default function CreditBuilderPage() {
                           <Zap className="w-4 h-4 mr-2" />
                           {builder.id === 'credit-repair-cloud' ? 'Book Free Webinar'
                             : builder.id === 'ava-finance' ? 'Get Discount'
-                            : builder.id === 'public-referral' ? 'Get Free Stock'
+                            : builder.id === 'robinhood-referral' ? 'Get Free Stocks'
                             : builder.id.startsWith('idiq') ? (builder.id === 'idiq-securepreferred' ? '$1 Trial' : 'Learn More')
                             : 'Visit & Earn Credits'
                           }
@@ -587,76 +465,6 @@ export default function CreditBuilderPage() {
           </div>
         </div>
 
-        {/* Tradeline Products Section */}
-        <div className="mb-20">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-              <TrendingUp className="w-4 h-4" />
-              Premium Tradelines
-            </div>
-            <h2 className="text-3xl font-bold mb-4">Accelerate Your Credit Growth</h2>
-            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-6">
-              Professional tradeline services to dramatically improve your credit score. Authorized user accounts from major banks with proven results.
-            </p>
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg max-w-3xl mx-auto">
-              <h3 className="font-semibold mb-2 text-blue-900 dark:text-blue-100">How Tradelines Work:</h3>
-              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• Add positive payment history to your credit report</li>
-                <li>• Increase total available credit (lower utilization)</li>
-                <li>• Strengthen account age and credit mix</li>
-                <li>• Improve FICO and VantageScore calculations</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {tradelineProducts.map((product) => (
-              <Card key={product.id} className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
-                <div className={`h-2 bg-gradient-to-r ${product.gradient}`} />
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-3xl">{product.logo}</div>
-                    <Badge variant="outline" className="text-xs">
-                      {product.limit}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-lg">{product.name}</CardTitle>
-                  <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
-                    {product.bank} • {product.accountAge}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pt-0">
-                  <div className="mb-4">
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-2xl font-bold text-green-600">${product.price}</span>
-                      <span className="text-sm text-slate-500 line-through">${product.originalPrice + 100}</span>
-                    </div>
-                    <div className="text-xs text-green-600 font-medium">Save ${(product.originalPrice + 100) - product.price}</div>
-                  </div>
-
-                  <ul className="space-y-2 mb-6">
-                    {product.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className={`w-full bg-gradient-to-r ${product.gradient} hover:opacity-90 text-white font-semibold h-10`}
-                    onClick={() => handleTradelineInterest(product)}
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Get Started
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
         {/* Call to Action */}
         <div className="text-center">
           <Card className="max-w-2xl mx-auto bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 border-0 shadow-xl">
@@ -667,7 +475,7 @@ export default function CreditBuilderPage() {
               </div>
               <h3 className="text-2xl font-bold mb-6">Ready to Transform Your Credit?</h3>
               <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-                Whether you choose free credit building or premium tradeline services, we're here to help you achieve your financial goals.
+                Choose from our curated selection of credit building services to start your journey toward better financial health.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button

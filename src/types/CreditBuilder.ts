@@ -32,26 +32,6 @@ export const creditBuilders: CreditBuilder[] = [
     gradient: "from-blue-500 to-blue-600"
   },
   {
-    id: 'kickoff',
-    title: "Kickoff",
-    link: "https://kikoff.com/refer/67PP77ZH",
-    description: "Get a free $5 and start building credit with a small credit line.",
-    bonus: "$5",
-    points: 50,
-    icon: null,
-    gradient: "from-purple-500 to-purple-600"
-  },
-  {
-    id: 'brigit',
-    title: "Brigit",
-    link: "https://brigit.app.link/cpFcNVSajub",
-    description: "Get free $15 and access credit building features plus cash advances.",
-    bonus: "$15",
-    points: 60,
-    icon: null,
-    gradient: "from-red-500 to-red-600"
-  },
-  {
     id: 'growcredit',
     title: "Grow Credit",
     link: "https://growcredit.com",
@@ -77,24 +57,5 @@ export const creditBuilders: CreditBuilder[] = [
     points: 55,
     icon: null,
     gradient: "from-orange-500 to-orange-600"
-  },
-  {
-    id: 'atlas',
-    title: "Atlas Credit Card",
-    link: "https://apps.apple.com/us/app/id1617487581",
-    description: "5x higher approval, 0% APR. Use code: dwra618 for up to $1,000 bonus",
-    bonus: "Up to $1,000",
-    points: 90,
-    icon: null,
-    gradient: "from-gray-700 to-gray-800"
-  },
-  {
-    id: 'tradelines',
-    title: "Tradelines Made Easy",
-    link: "https://www.dpbolvw.net/click-101325994-13503362",
-    description: "Boost your credit score with authorized user tradelines.",
-    points: 65,
-    icon: null,
-    gradient: "from-teal-500 to-teal-600"
   }
 ];
