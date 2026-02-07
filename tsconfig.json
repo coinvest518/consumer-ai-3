@@ -22,6 +22,6 @@
     "types": ["vite/client", "react"],
     "ignoreDeprecations": "5.0"
   },
-  "include": ["src", "shared", "api", "attached_assets/layout"],
+  "include": ["src", "shared", "api", "src/layout"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
